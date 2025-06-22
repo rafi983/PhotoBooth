@@ -7,6 +7,7 @@ import logo from "../assets/logo-2.svg";
 import useAuth from "../hooks/useAuth";
 import useAxios from "../hooks/useAxios";
 import ErrorDialog from "../components/ErrorDialog.jsx";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const { login } = useAuth();
@@ -54,7 +55,7 @@ const Login = () => {
           err.response?.data?.error || "An error occurred during login.",
         );
       }
-      console.error("Login API Error:", err);
+      toast.error("Login API Error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -67,13 +68,12 @@ const Login = () => {
       const result = await signInWithPopup(auth, provider);
 
       const { email } = result.user;
+      const googlePassword = `GOOGLE_${email}_AUTH_${email.length}`;
 
-      // Try to login directly first
       try {
         const loginResponse = await api.post("/auth/login", {
           email: email,
-          // We don't know the password, so this might fail
-          password: "",
+          password: googlePassword,
         });
 
         const accessToken = loginResponse?.data?.accessToken;
@@ -86,24 +86,16 @@ const Login = () => {
           return;
         }
       } catch (loginErr) {
-        // Login failed, now try signup flow
         try {
-          // Generate a random secure password for backend
-          const randomPassword =
-            Math.random().toString(36).slice(-10) +
-            Math.random().toString(36).slice(-10);
-
-          // Register the user
           await api.post("/auth/signup", {
             name: result.user.displayName || email.split("@")[0],
             email: email,
-            password: randomPassword,
+            password: googlePassword,
           });
 
-          // Now try login
           const loginResponse = await api.post("/auth/login", {
             email: email,
-            password: randomPassword,
+            password: googlePassword,
           });
 
           const accessToken = loginResponse?.data?.accessToken;
@@ -118,7 +110,7 @@ const Login = () => {
           }
         } catch (signupErr) {
           setError(
-            "This email is already registered. Please use your password to login.",
+            "This email is already registered but with a different method. Please use your password to login.",
           );
         }
       }
@@ -203,7 +195,6 @@ const Login = () => {
               </button>
             </div>
 
-            {/* OR Separator */}
             <div className="or-separator text-gray-500 text-sm font-semibold my-4">
               <span className="flex items-center">
                 <span className="flex-1 h-px bg-gray-300 mr-4" />
@@ -212,7 +203,6 @@ const Login = () => {
               </span>
             </div>
 
-            {/* Google Sign-up Button */}
             <div className="mb-2">
               <button
                 type="button"

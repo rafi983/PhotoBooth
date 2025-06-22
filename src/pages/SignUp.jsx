@@ -8,6 +8,7 @@ import useAuth from "../hooks/useAuth";
 import useAxios from "../hooks/useAxios";
 import SuccessDialog from "../components/SuccessDialog.jsx";
 import ErrorDialog from "../components/ErrorDialog.jsx";
+import toast from "react-hot-toast";
 
 const SignUp = () => {
   const { signupAndRedirect } = useAuth();
@@ -59,25 +60,19 @@ const SignUp = () => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
 
-      // Get user details from Google auth
       const { displayName, email } = result.user;
 
-      // Generate a random secure password for backend
-      const randomPassword =
-        Math.random().toString(36).slice(-10) +
-        Math.random().toString(36).slice(-10);
+      const googlePassword = `GOOGLE_${email}_AUTH_${email.length}`;
 
-      // Register with your existing backend
       await api.post("/auth/signup", {
         name: displayName,
         email: email,
-        password: randomPassword,
+        password: googlePassword,
       });
 
-      // Auto-login to get tokens
       const loginResponse = await api.post("/auth/login", {
         email: email,
-        password: randomPassword,
+        password: googlePassword,
       });
 
       const accessToken = loginResponse?.data?.accessToken;
@@ -85,7 +80,6 @@ const SignUp = () => {
       const refreshToken = loginResponse?.data?.refreshToken;
 
       if (accessToken && user) {
-        // Use your existing auth hook to handle login and redirect
         signupAndRedirect(user, accessToken, refreshToken);
       } else {
         setError("Failed to authenticate after Google signup");
@@ -99,7 +93,7 @@ const SignUp = () => {
         setError(
           "Failed to sign up with Google. Please try again or use email registration.",
         );
-        console.error("Google signup error:", err);
+        toast.error("Google signup error:", err);
       }
     } finally {
       setIsLoading(false);
@@ -222,7 +216,7 @@ const SignUp = () => {
                 {isLoading ? "Signing up..." : "Sign up"}
               </button>
             </div>
-            {/* OR Separator */}
+
             <div className="or-separator text-gray-500 text-sm font-semibold my-4">
               <span className="flex items-center">
                 <span className="flex-1 h-px bg-gray-300 mr-4" />
@@ -231,7 +225,6 @@ const SignUp = () => {
               </span>
             </div>
 
-            {/* Google Sign-up Button */}
             <div className="mb-2">
               <button
                 type="button"
