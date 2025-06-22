@@ -10,7 +10,7 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
-import EditPost from "./components/EditPost.jsx";
+import EditPost from "./pages/EditPost.jsx";
 
 function App() {
   return (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useAxios from "../hooks/useAxios.js";
-import Sidebar from "./Sidebar.jsx";
+import Sidebar from "../components/Sidebar.jsx";
 import toast from "react-hot-toast";
 
 import { BASE_URL } from "../utils/apiConfig.js";
