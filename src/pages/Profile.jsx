@@ -97,43 +97,52 @@ const Profile = () => {
                 className="w-36 h-36 rounded-full object-cover border"
               />
             </div>
-            <div className="md:w-2/3 text-center md:text-left md:ml-10">
-              <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 mb-4">
-                <div className="text-center sm:text-left">
-                  <h2 className="text-2xl font-light">{profileInfo.name}</h2>
-                  <p className="text-sm text-gray-500">
-                    @{getUsernameFromEmail(profileInfo.email)}
-                  </p>
-                </div>
-                {isOwnProfile && (
+            <div className="md:w-2/3 md:ml-10 text-center md:text-left">
+              {/* Name and Username on same line */}
+              <div className="flex flex-wrap justify-center md:justify-start items-center gap-2 mb-1">
+                <h2 className="text-2xl font-semibold">{profileInfo.name}</h2>
+                <p className="text-sm text-gray-500">
+                  @{getUsernameFromEmail(profileInfo.email)}
+                </p>
+              </div>
+
+              {/* Edit Profile button below */}
+              {isOwnProfile && (
+                <div className="mb-4">
                   <Link
                     to="/edit-profile"
-                    className="bg-gray-200 px-4 py-1.5 rounded-md text-sm font-semibold inline-block"
+                    className="inline-block bg-gray-100 hover:bg-gray-200 text-sm font-medium px-4 py-1.5 rounded-md transition"
                   >
                     Edit profile
                   </Link>
+                </div>
+              )}
+
+              {/* Stats */}
+              <div className="flex justify-center md:justify-start space-x-6 sm:space-x-10 mb-4 text-sm">
+                <span>
+                  <strong className="font-semibold">{posts.length}</strong>{" "}
+                  posts
+                </span>
+                <span>
+                  <strong className="font-semibold">0</strong> followers
+                </span>
+                <span>
+                  <strong className="font-semibold">0</strong> following
+                </span>
+              </div>
+
+              {/* Bio + Website */}
+              <div className="text-sm space-y-1">
+                {profileInfo.bio && (
+                  <p className="whitespace-pre-line">{profileInfo.bio}</p>
                 )}
-              </div>
-              <div className="flex justify-center md:justify-start space-x-8 mb-4">
-                <span>
-                  <strong>{posts.length}</strong> posts
-                </span>
-                <span>
-                  <strong>0</strong> followers
-                </span>
-                <span>
-                  <strong>0</strong> following
-                </span>
-              </div>
-              <div className="text-sm">
-                <p className="font-semibold">{profileInfo.name}</p>
-                <p>{profileInfo.bio}</p>
                 {profileInfo.website && (
                   <a
                     href={profileInfo.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-900 font-semibold"
+                    className="text-blue-700 font-medium hover:underline break-words"
                   >
                     {profileInfo.website}
                   </a>

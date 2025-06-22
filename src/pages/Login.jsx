@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../firebase/config";
 import logo from "../assets/logo-2.svg";
 import useAuth from "../hooks/useAuth";
 import useAxios from "../hooks/useAxios";
@@ -22,9 +24,11 @@ const Login = () => {
   });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const onSubmit = async (data) => {
     setError("");
+    setIsLoading(true);
 
     try {
       const response = await api.post("/auth/login", {
@@ -42,15 +46,95 @@ const Login = () => {
       } else {
         setError("Invalid response from server. Could not log in.");
       }
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
         setError("Invalid email or password. Please try again.");
       } else {
         setError(
-          error.response?.data?.error || "An error occurred during login.",
+          err.response?.data?.error || "An error occurred during login.",
         );
       }
-      console.error("Login API Error:", error);
+      console.error("Login API Error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      const { email } = result.user;
+
+      // Try to login directly first
+      try {
+        const loginResponse = await api.post("/auth/login", {
+          email: email,
+          // We don't know the password, so this might fail
+          password: "",
+        });
+
+        const accessToken = loginResponse?.data?.accessToken;
+        const user = loginResponse?.data?.user;
+        const refreshToken = loginResponse?.data?.refreshToken;
+
+        if (accessToken && user) {
+          login(user, accessToken, refreshToken);
+          navigate("/");
+          return;
+        }
+      } catch (loginErr) {
+        // Login failed, now try signup flow
+        try {
+          // Generate a random secure password for backend
+          const randomPassword =
+            Math.random().toString(36).slice(-10) +
+            Math.random().toString(36).slice(-10);
+
+          // Register the user
+          await api.post("/auth/signup", {
+            name: result.user.displayName || email.split("@")[0],
+            email: email,
+            password: randomPassword,
+          });
+
+          // Now try login
+          const loginResponse = await api.post("/auth/login", {
+            email: email,
+            password: randomPassword,
+          });
+
+          const accessToken = loginResponse?.data?.accessToken;
+          const user = loginResponse?.data?.user;
+          const refreshToken = loginResponse?.data?.refreshToken;
+
+          if (accessToken && user) {
+            login(user, accessToken, refreshToken);
+            navigate("/");
+          } else {
+            setError("Failed to authenticate after Google sign-in");
+          }
+        } catch (signupErr) {
+          setError(
+            "This email is already registered. Please use your password to login.",
+          );
+        }
+      }
+    } catch (err) {
+      if (err.code === "auth/popup-closed-by-user") {
+        setError("Sign-in was cancelled.");
+      } else if (err.code === "auth/account-exists-with-different-credential") {
+        setError("An account already exists with the same email address.");
+      } else {
+        setError(
+          "Failed to sign in with Google. Please try again or use email login.",
+        );
+        console.error("Google login error:", err);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -110,8 +194,33 @@ const Login = () => {
             </div>
 
             <div className="mb-4">
-              <button type="submit" className="login-button">
-                Log in
+              <button
+                type="submit"
+                className="login-button"
+                disabled={isLoading}
+              >
+                {isLoading ? "Logging in..." : "Log in"}
+              </button>
+            </div>
+
+            {/* OR Separator */}
+            <div className="or-separator text-gray-500 text-sm font-semibold my-4">
+              <span className="flex items-center">
+                <span className="flex-1 h-px bg-gray-300 mr-4" />
+                OR
+                <span className="flex-1 h-px bg-gray-300 ml-4" />
+              </span>
+            </div>
+
+            {/* Google Sign-up Button */}
+            <div className="mb-2">
+              <button
+                type="button"
+                className="w-full bg-blue-500 border border-gray-300 text-white hover:bg-blue-600 text-sm font-semibold py-2 px-4 rounded flex items-center justify-center gap-2"
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Sign in with Google"}
               </button>
             </div>
           </form>

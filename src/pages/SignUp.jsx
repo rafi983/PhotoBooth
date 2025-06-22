@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../firebase/config";
 import logo from "../assets/logo-2.svg";
 import useAuth from "../hooks/useAuth";
 import useAxios from "../hooks/useAxios";
@@ -29,9 +31,11 @@ const SignUp = () => {
     email: "",
     password: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const onSubmit = async (data) => {
     setError("");
+    setIsLoading(true);
 
     try {
       await api.post("/auth/signup", data);
@@ -40,15 +44,71 @@ const SignUp = () => {
         password: data.password,
       });
       setShowSuccess(true);
-    } catch (error) {
+    } catch (err) {
       setError(
-        error.response?.data?.error || error.message || "An error occurred.",
+        err.response?.data?.error || err.message || "An error occurred.",
       );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      setIsLoading(true);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      // Get user details from Google auth
+      const { displayName, email } = result.user;
+
+      // Generate a random secure password for backend
+      const randomPassword =
+        Math.random().toString(36).slice(-10) +
+        Math.random().toString(36).slice(-10);
+
+      // Register with your existing backend
+      await api.post("/auth/signup", {
+        name: displayName,
+        email: email,
+        password: randomPassword,
+      });
+
+      // Auto-login to get tokens
+      const loginResponse = await api.post("/auth/login", {
+        email: email,
+        password: randomPassword,
+      });
+
+      const accessToken = loginResponse?.data?.accessToken;
+      const user = loginResponse?.data?.user;
+      const refreshToken = loginResponse?.data?.refreshToken;
+
+      if (accessToken && user) {
+        // Use your existing auth hook to handle login and redirect
+        signupAndRedirect(user, accessToken, refreshToken);
+      } else {
+        setError("Failed to authenticate after Google signup");
+      }
+    } catch (err) {
+      if (err.code === "auth/popup-closed-by-user") {
+        setError("Sign-in was cancelled.");
+      } else if (err.code === "auth/account-exists-with-different-credential") {
+        setError("An account already exists with the same email address.");
+      } else {
+        setError(
+          "Failed to sign up with Google. Please try again or use email registration.",
+        );
+        console.error("Google signup error:", err);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSuccess = async () => {
     try {
+      setIsLoading(true);
       const loginResponse = await api.post("/auth/login", {
         email: formValues.email,
         password: formValues.password,
@@ -63,8 +123,10 @@ const SignUp = () => {
       } else {
         navigate("/login");
       }
-    } catch (error) {
+    } catch (err) {
       navigate("/login");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -155,8 +217,29 @@ const SignUp = () => {
               <button
                 type="submit"
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm py-2 px-4 rounded"
+                disabled={isLoading}
               >
-                Sign up
+                {isLoading ? "Signing up..." : "Sign up"}
+              </button>
+            </div>
+            {/* OR Separator */}
+            <div className="or-separator text-gray-500 text-sm font-semibold my-4">
+              <span className="flex items-center">
+                <span className="flex-1 h-px bg-gray-300 mr-4" />
+                OR
+                <span className="flex-1 h-px bg-gray-300 ml-4" />
+              </span>
+            </div>
+
+            {/* Google Sign-up Button */}
+            <div className="mb-2">
+              <button
+                type="button"
+                className="w-full bg-blue-500 border border-gray-300 text-white hover:bg-blue-600 text-sm font-semibold py-2 px-4 rounded flex items-center justify-center gap-2"
+                onClick={handleGoogleSignUp}
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing up..." : "Sign up with Google"}
               </button>
             </div>
           </form>

@@ -19,8 +19,8 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<SignUp />} />
+      {/* Add this route */}
       <Route path="/post/:id" element={<PostDetails />} />
-
       {/* Protected Routes */}
       <Route
         path="/notifications"
@@ -38,7 +38,6 @@ function App() {
           </PrivateRoute>
         }
       />
-
       <Route
         path="/edit-post/:id"
         element={
@@ -47,7 +46,6 @@ function App() {
           </PrivateRoute>
         }
       />
-
       <Route
         path="/profile"
         element={
