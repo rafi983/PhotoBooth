@@ -16,6 +16,8 @@ const Profile = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const getUsernameFromEmail = (email) => email?.split("@")[0];
+
   useEffect(() => {
     const fetchProfileData = async () => {
       setLoading(true);
@@ -97,7 +99,12 @@ const Profile = () => {
             </div>
             <div className="md:w-2/3 text-center md:text-left md:ml-10">
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 mb-4">
-                <h2 className="text-2xl font-light">{profileInfo.name}</h2>
+                <div className="text-center sm:text-left">
+                  <h2 className="text-2xl font-light">{profileInfo.name}</h2>
+                  <p className="text-sm text-gray-500">
+                    @{getUsernameFromEmail(profileInfo.email)}
+                  </p>
+                </div>
                 {isOwnProfile && (
                   <Link
                     to="/edit-profile"
