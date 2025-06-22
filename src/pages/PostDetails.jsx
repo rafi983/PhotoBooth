@@ -15,6 +15,7 @@ import {
   TrashIcon,
 } from "../components/Icons.jsx";
 import ShareButton from "../components/ShareButton.jsx";
+import LikesModal from "../components/LikesModal.jsx";
 
 const PostDetails = () => {
   const { id } = useParams();
@@ -29,6 +30,7 @@ const PostDetails = () => {
   const [editingText, setEditingText] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [morePosts, setMorePosts] = useState([]);
+  const [showLikesModal, setShowLikesModal] = useState(false);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -47,6 +49,7 @@ const PostDetails = () => {
       }
     };
     fetchPost();
+    // eslint-disable-next-line
   }, [id, api, navigate]);
 
   const fetchMorePosts = async (userId, excludeId) => {
@@ -308,9 +311,22 @@ const PostDetails = () => {
                 </button>
                 <ShareButton postId={post._id} />
               </div>
-              <p className="text-sm font-bold text-[#212529] mt-3">
+              <button
+                className="text-sm font-bold text-[#212529] mt-3 focus:outline-none hover:underline"
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: post.likes?.length > 0 ? "pointer" : "default",
+                }}
+                onClick={() =>
+                  post.likes?.length > 0 && setShowLikesModal(true)
+                }
+                type="button"
+                disabled={post.likes?.length === 0}
+              >
                 {post.likes?.length || 0} likes
-              </p>
+              </button>
 
               <form
                 onSubmit={handleCommentSubmit}
@@ -343,7 +359,14 @@ const PostDetails = () => {
             </div>
           </div>
         </div>
-
+        {/* Likes Modal */}
+        {showLikesModal && (
+          <LikesModal
+            users={post.likes}
+            onClose={() => setShowLikesModal(false)}
+          />
+        )}
+        )}
         {/* More Posts */}
         <div className="max-w-6xl mx-auto mt-12">
           <h2 className="text-sm font-semibold text-gray-500 mb-4 border-t border-gray-200 pt-8">
@@ -369,7 +392,6 @@ const PostDetails = () => {
             </div>
           )}
         </div>
-
         {/* Delete Modal */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
