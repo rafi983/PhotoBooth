@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import logo from "../assets/logo-2.svg";
 import useAuth from "../hooks/useAuth";
 import useAxios from "../hooks/useAxios";
@@ -9,22 +10,27 @@ const Login = () => {
   const { login } = useAuth();
   const api = useAxios();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setError("");
 
-    if (!email || !password) {
-      setError("Email and password are required.");
-      return;
-    }
-
     try {
-      const response = await api.post("/auth/login", { email, password });
+      const response = await api.post("/auth/login", {
+        email: data.email,
+        password: data.password,
+      });
 
       const accessToken = response?.data?.accessToken;
       const user = response?.data?.user;
@@ -36,15 +42,15 @@ const Login = () => {
       } else {
         setError("Invalid response from server. Could not log in.");
       }
-    } catch (err) {
-      if (err.response && err.response.status === 401) {
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
         setError("Invalid email or password. Please try again.");
       } else {
         setError(
-          err.response?.data?.error || "An error occurred during login.",
+          error.response?.data?.error || "An error occurred during login.",
         );
       }
-      console.error("Login API Error:", err);
+      console.error("Login API Error:", error);
     }
   };
 
@@ -57,26 +63,37 @@ const Login = () => {
         </div>
 
         <div className="bg-white p-6 border border-gray-300 mb-3 rounded-md">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-3">
               <input
                 type="text"
-                className="form-input"
+                className={`form-input ${errors.email ? "border-red-500" : ""}`}
                 placeholder="Phone number, username, or email"
                 aria-label="Phone number, username, or email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^\S+@\S+\.\S+$/,
+                    message: "Please enter a valid email",
+                  },
+                })}
               />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div className="mb-3 relative">
               <input
                 type={showPassword ? "text" : "password"}
-                className="form-input pr-16"
+                className={`form-input pr-16 ${errors.password ? "border-red-500" : ""}`}
                 placeholder="Password"
                 aria-label="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register("password", {
+                  required: "Password is required",
+                })}
               />
               <button
                 type="button"
@@ -85,6 +102,11 @@ const Login = () => {
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             <div className="mb-4">

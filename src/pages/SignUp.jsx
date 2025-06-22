@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import logo from "../assets/logo-2.svg";
 import useAuth from "../hooks/useAuth";
 import useAxios from "../hooks/useAxios";
@@ -10,38 +11,38 @@ const SignUp = () => {
   const { signupAndRedirect } = useAuth();
   const api = useAxios();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: "",
-    name: "",
-    password: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      email: "",
+      name: "",
+      password: "",
+    },
   });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [formValues, setFormValues] = useState({
+    email: "",
+    password: "",
+  });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setError("");
 
-    if (!formData.email || !formData.name || !formData.password) {
-      setError("All fields are required.");
-      return;
-    }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
-    }
-
     try {
-      await api.post("/auth/signup", formData);
+      await api.post("/auth/signup", data);
+      setFormValues({
+        email: data.email,
+        password: data.password,
+      });
       setShowSuccess(true);
-    } catch (err) {
+    } catch (error) {
       setError(
-        err.response?.data?.error || err.message || "An error occurred.",
+        error.response?.data?.error || error.message || "An error occurred.",
       );
     }
   };
@@ -49,8 +50,8 @@ const SignUp = () => {
   const handleSuccess = async () => {
     try {
       const loginResponse = await api.post("/auth/login", {
-        email: formData.email,
-        password: formData.password,
+        email: formValues.email,
+        password: formValues.password,
       });
 
       const accessToken = loginResponse?.data?.accessToken;
@@ -62,7 +63,7 @@ const SignUp = () => {
       } else {
         navigate("/login");
       }
-    } catch (err) {
+    } catch (error) {
       navigate("/login");
     }
   };
@@ -87,38 +88,54 @@ const SignUp = () => {
           <h2 className="text-center font-semibold text-gray-500 text-lg mb-4">
             Sign up to see photos and videos from your friends.
           </h2>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-2">
               <input
                 type="email"
-                name="email"
-                className="form-input"
+                className={`form-input ${errors.email ? "border-red-500" : ""}`}
                 placeholder="Email"
                 aria-label="Email"
-                value={formData.email}
-                onChange={handleChange}
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^\S+@\S+\.\S+$/,
+                    message: "Please enter a valid email",
+                  },
+                })}
               />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
             <div className="mb-2">
               <input
                 type="text"
-                name="name"
-                className="form-input"
+                className={`form-input ${errors.name ? "border-red-500" : ""}`}
                 placeholder="Full Name"
                 aria-label="Full Name"
-                value={formData.name}
-                onChange={handleChange}
+                {...register("name", { required: "Full name is required" })}
               />
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
             <div className="mb-3 relative">
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
-                className="form-input"
+                className={`form-input ${errors.password ? "border-red-500" : ""}`}
                 placeholder="Password"
                 aria-label="Password"
-                value={formData.password}
-                onChange={handleChange}
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters long",
+                  },
+                })}
               />
               <button
                 type="button"
@@ -127,6 +144,11 @@ const SignUp = () => {
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             <div className="mb-2">

@@ -366,7 +366,7 @@ const PostDetails = () => {
             onClose={() => setShowLikesModal(false)}
           />
         )}
-        )}
+
         {/* More Posts */}
         <div className="max-w-6xl mx-auto mt-12">
           <h2 className="text-sm font-semibold text-gray-500 mb-4 border-t border-gray-200 pt-8">
