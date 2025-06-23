@@ -11,7 +11,7 @@ import {
   CreateIcon,
   ProfileIcon,
   LogoutIcon,
-} from "./icons";
+} from "./Icons.jsx";
 
 const NavItem = ({ to, icon: Icon, children, count }) => (
   <li>
