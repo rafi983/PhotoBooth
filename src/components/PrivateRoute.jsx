@@ -1,13 +1,20 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
+import useAuthStore from "../store/useAuthStore";
+import Loader from "./Loader.jsx"; // Assuming you have this component
 
 const PrivateRoute = ({ children }) => {
-  const { user, loading } = useAuth(); // Get loading state
+  const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const location = useLocation();
 
-  if (loading) {
-    return <div>Loading...</div>;
+  // Show loading indicator until hydration completes
+  if (!hasHydrated) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader />
+      </div>
+    );
   }
 
   if (!user) {

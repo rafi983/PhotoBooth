@@ -2,13 +2,13 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
 import useAxios from "../hooks/useAxios.js";
-import useAuth from "../hooks/useAuth.js";
+import useAuthStore from "../store/useAuthStore";
 import { BASE_URL } from "../utils/apiConfig.js";
 import SuccessDialog from "../components/SuccessDialog.jsx";
 import ErrorDialog from "../components/ErrorDialog.jsx";
 
 const CreatePost = () => {
-  const { user } = useAuth();
+  const user = useAuthStore((state) => state.user);
   const api = useAxios();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);

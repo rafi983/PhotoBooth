@@ -4,14 +4,16 @@ import { useForm } from "react-hook-form";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase/config";
 import logo from "../assets/logo-2.svg";
-import useAuth from "../hooks/useAuth";
+import useAuthStore from "../store/useAuthStore";
 import useAxios from "../hooks/useAxios";
 import ErrorDialog from "../components/ErrorDialog.jsx";
 import toast from "react-hot-toast";
 import { generateGoogleAuthPassword } from "../utils/googleAuth";
 
 const Login = () => {
-  const { login } = useAuth();
+  const setUser = useAuthStore((state) => state.setUser);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setRefreshToken = useAuthStore((state) => state.setRefreshToken);
   const api = useAxios();
   const navigate = useNavigate();
   const {
@@ -43,7 +45,9 @@ const Login = () => {
       const refreshToken = response?.data?.refreshToken;
 
       if (accessToken && user) {
-        login(user, accessToken, refreshToken);
+        setUser(user);
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
         navigate("/");
       } else {
         setError("Invalid response from server. Could not log in.");
@@ -82,7 +86,9 @@ const Login = () => {
         const refreshToken = loginResponse?.data?.refreshToken;
 
         if (accessToken && user) {
-          login(user, accessToken, refreshToken);
+          setUser(user);
+          setAccessToken(accessToken);
+          setRefreshToken(refreshToken);
           navigate("/");
           return;
         }
@@ -104,7 +110,9 @@ const Login = () => {
           const refreshToken = loginResponse?.data?.refreshToken;
 
           if (accessToken && user) {
-            login(user, accessToken, refreshToken);
+            setUser(user);
+            setAccessToken(accessToken);
+            setRefreshToken(refreshToken);
             navigate("/");
           } else {
             setError("Failed to authenticate after Google sign-in");

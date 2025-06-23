@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
+import useAuthStore from "../store/useAuthStore";
 import useAxios from "../hooks/useAxios";
 import { LikeIcon, LikeIconFilled, CommentIcon, SendIcon } from "./Icons";
 import TruncatedCaption from "./TruncatedCaption";
@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import { formatDistanceToNowStrict } from "date-fns";
 
 const PostCard = ({ postData, setShowPopup, onPostUpdate }) => {
-  const { user: loggedInUser } = useAuth();
+  const loggedInUser = useAuthStore((state) => state.user);
   const api = useAxios();
   const [comment, setComment] = useState("");
   const [showLikesModal, setShowLikesModal] = useState(false);
@@ -76,7 +76,6 @@ const PostCard = ({ postData, setShowPopup, onPostUpdate }) => {
       await fetchFullPost(_id);
     } catch (err) {
       toast.error("Failed to post comment");
-      console.error("Comment failed", err);
     }
   };
 
@@ -152,7 +151,6 @@ const PostCard = ({ postData, setShowPopup, onPostUpdate }) => {
           </div>
           <ShareButton postId={_id} />
         </div>
-
         {/* Likes */}
         <button
           onClick={() => likes.length > 0 && setShowLikesModal(true)}
@@ -161,7 +159,6 @@ const PostCard = ({ postData, setShowPopup, onPostUpdate }) => {
         >
           {likes.length} {likes.length === 1 ? "like" : "likes"}
         </button>
-
         {/* Caption */}
         <div className="mt-2">
           <TruncatedCaption
@@ -169,7 +166,7 @@ const PostCard = ({ postData, setShowPopup, onPostUpdate }) => {
             author={author?.name || "Unknown User"}
           />
         </div>
-
+        {/* Comments Preview */}
         {/* Comments Preview */}
         <div className="mt-2 text-sm">
           {commentsCount > 2 && (
@@ -184,9 +181,20 @@ const PostCard = ({ postData, setShowPopup, onPostUpdate }) => {
           <div className="space-y-1 mt-1">
             {comments.slice(0, 2).map((comment) =>
               comment ? (
-                <p key={comment._id} className="text-[#212529] truncate">
-                  <span className="font-bold">{comment.user?.name}</span>
-                  <span className="ml-1">{comment.text}</span>
+                <p key={comment._id} className="text-[#212529]">
+                  <Link
+                    to={loggedInUser ? `/profile/${comment.user?._id}` : "#"}
+                    onClick={(e) => {
+                      if (!loggedInUser) {
+                        e.preventDefault();
+                        setShowPopup(true);
+                      }
+                    }}
+                    className="font-bold hover:underline"
+                  >
+                    {comment.user?.name}
+                  </Link>
+                  <span className="ml-1 truncate">{comment.text}</span>
                 </p>
               ) : null,
             )}

@@ -1,6 +1,6 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { AuthContext } from "../contexts/AuthContext.jsx";
+import useAuthStore from "../store/useAuthStore";
 import useAxios from "../hooks/useAxios.js";
 import logo from "../assets/logo-2.svg";
 import { BASE_URL } from "../utils/apiConfig";
@@ -41,9 +41,12 @@ const NavItem = ({ to, icon: Icon, children, count }) => (
 );
 
 const Sidebar = () => {
-  const { user, logout, unreadCount, setUnreadCount } = useContext(AuthContext);
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const api = useAxios();
+  // Since unreadCount was in context, we'll use local state for now
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -62,11 +65,13 @@ const Sidebar = () => {
       }
     };
 
+    // Initial check
     checkNotifications();
-    const intervalId = setInterval(checkNotifications, 15000);
 
-    return () => clearInterval(intervalId);
-  }, [user, api, setUnreadCount]);
+    // Set up polling interval
+    const interval = setInterval(checkNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [api, user]);
 
   const handleLogout = () => {
     logout();
@@ -119,10 +124,10 @@ const Sidebar = () => {
               </div>
               <div className="ml-3">
                 <span className="font-semibold text-sm text-pink-500">
-                  {user.name}
+                  {user?.name || "User"}
                 </span>
                 <p className="text-xs text-pink-500 leading-0">
-                  @{user.email.split("@")[0]}
+                  @{user?.email ? user.email.split("@")[0] : "user"}
                 </p>
               </div>
             </div>

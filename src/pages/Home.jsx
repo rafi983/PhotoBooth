@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import useAxios from "../hooks/useAxios";
-import useAuth from "../hooks/useAuth";
 import axios from "axios";
+import useAuthStore from "../store/useAuthStore";
 
 import Sidebar from "../components/Sidebar";
 import Loader from "../components/Loader";
@@ -10,7 +10,7 @@ import PostList from "../components/PostList";
 import { BASE_URL } from "../utils/apiConfig";
 
 const Home = () => {
-  const { user } = useAuth();
+  const user = useAuthStore((state) => state.user);
   const api = useAxios();
   const observer = useRef();
 

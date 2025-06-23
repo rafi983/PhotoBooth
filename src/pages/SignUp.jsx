@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase/config";
 import logo from "../assets/logo-2.svg";
-import useAuth from "../hooks/useAuth";
+import useAuthStore from "../store/useAuthStore";
 import useAxios from "../hooks/useAxios";
 import SuccessDialog from "../components/SuccessDialog.jsx";
 import ErrorDialog from "../components/ErrorDialog.jsx";
@@ -12,7 +12,9 @@ import toast from "react-hot-toast";
 import { generateGoogleAuthPassword } from "../utils/googleAuth";
 
 const SignUp = () => {
-  const { signupAndRedirect } = useAuth();
+  const setUser = useAuthStore((state) => state.setUser);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setRefreshToken = useAuthStore((state) => state.setRefreshToken);
   const api = useAxios();
   const navigate = useNavigate();
   const {
@@ -40,16 +42,59 @@ const SignUp = () => {
     setIsLoading(true);
 
     try {
+      // First register the user
       await api.post("/auth/signup", data);
-      setFormValues({
+
+      // Immediately authenticate the user
+      const loginResponse = await api.post("/auth/login", {
         email: data.email,
         password: data.password,
       });
-      setShowSuccess(true);
+
+      const accessToken = loginResponse?.data?.accessToken;
+      const user = loginResponse?.data?.user;
+      const refreshToken = loginResponse?.data?.refreshToken;
+
+      if (accessToken && user) {
+        // Store authentication data directly in zustand
+        setUser(user);
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+
+        // Navigate to home or profile edit
+        navigate("/edit-profile");
+      } else {
+        setError("Failed to complete authentication process.");
+      }
     } catch (err) {
       setError(
         err.response?.data?.error || err.message || "An error occurred.",
       );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSuccess = async () => {
+    try {
+      setIsLoading(true);
+      const loginResponse = await api.post("/auth/login", {
+        email: formValues.email,
+        password: formValues.password,
+      });
+      const accessToken = loginResponse?.data?.accessToken;
+      const user = loginResponse?.data?.user;
+      const refreshToken = loginResponse?.data?.refreshToken;
+      if (accessToken && user) {
+        setUser(user);
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+        navigate("/edit-profile");
+      } else {
+        navigate("/login");
+      }
+    } catch (err) {
+      navigate("/login");
     } finally {
       setIsLoading(false);
     }
@@ -60,28 +105,25 @@ const SignUp = () => {
       setIsLoading(true);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-
       const { displayName, email } = result.user;
-
       const googlePassword = generateGoogleAuthPassword(result.user);
-
       await api.post("/auth/signup", {
         name: displayName,
         email: email,
         password: googlePassword,
       });
-
       const loginResponse = await api.post("/auth/login", {
         email: email,
         password: googlePassword,
       });
-
       const accessToken = loginResponse?.data?.accessToken;
       const user = loginResponse?.data?.user;
       const refreshToken = loginResponse?.data?.refreshToken;
-
       if (accessToken && user) {
-        signupAndRedirect(user, accessToken, refreshToken);
+        setUser(user);
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+        navigate("/");
       } else {
         setError("Failed to authenticate after Google signup");
       }
@@ -101,37 +143,13 @@ const SignUp = () => {
     }
   };
 
-  const handleSuccess = async () => {
-    try {
-      setIsLoading(true);
-      const loginResponse = await api.post("/auth/login", {
-        email: formValues.email,
-        password: formValues.password,
-      });
-
-      const accessToken = loginResponse?.data?.accessToken;
-      const user = loginResponse?.data?.user;
-      const refreshToken = loginResponse?.data?.refreshToken;
-
-      if (accessToken && user) {
-        signupAndRedirect(user, accessToken, refreshToken);
-      } else {
-        navigate("/login");
-      }
-    } catch (err) {
-      navigate("/login");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col justify-center py-8 sm:px-6 lg:px-8 font-satoshi">
       {showSuccess && (
         <SuccessDialog
           title="Account Created"
           message="Your PhotoBooth account has been created successfully."
-          primaryButtonText="Continue to Feed"
+          primaryButtonText="Continue to edit profile section"
           onPrimaryButtonClick={handleSuccess}
         />
       )}

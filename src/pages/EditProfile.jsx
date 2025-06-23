@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar.jsx";
 import useAxios from "../hooks/useAxios.js";
-import { AuthContext } from "../contexts/AuthContext.jsx";
+import useAuthStore from "../store/useAuthStore";
 import SuccessDialog from "../components/SuccessDialog.jsx";
 import ErrorDialog from "../components/ErrorDialog.jsx";
 import { BASE_URL } from "../utils/apiConfig.js";
@@ -17,7 +17,9 @@ const getPasswordStrength = (password) => {
 };
 
 const EditProfile = () => {
-  const { user, updateUser, logout } = useContext(AuthContext);
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
+  const logout = useAuthStore((state) => state.logout);
   const api = useAxios();
 
   const [formData, setFormData] = useState({
@@ -95,7 +97,7 @@ const EditProfile = () => {
         await api.patch("/users/me/avatar", avatarData);
       }
       const updatedUserResponse = await api.get("/users/me");
-      updateUser(updatedUserResponse.data);
+      setUser(updatedUserResponse.data);
       setSuccessInfo({ show: true, message: "Profile updated successfully!" });
       setAvatarFile(null);
     } catch (err) {

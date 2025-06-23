@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
 import useAxios from "../hooks/useAxios.js";
-import useAuth from "../hooks/useAuth.js";
+import useAuthStore from "../store/useAuthStore";
 import { BASE_URL } from "../utils/apiConfig.js";
 import Loader from "../components/Loader.jsx";
 import ErrorDialog from "../components/ErrorDialog.jsx";
@@ -105,7 +105,7 @@ const Notifications = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const api = useAxios();
-  const { user: currentUser, setUnreadCount } = useAuth();
+  const currentUser = useAuthStore((state) => state.user);
 
   const handleRemoveNotification = (idToRemove) => {
     addDeadNotificationId(idToRemove);
@@ -198,7 +198,8 @@ const Notifications = () => {
           await Promise.all(
             unreadIds.map((id) => api.patch(`/notifications/${id}/read`)),
           );
-          setUnreadCount(0);
+          // If you need setUnreadCount globally, add it to zustand store and use here
+          // setUnreadCount(0);
         } catch (error) {
           console.error("Failed to mark notifications as read", error);
         }
@@ -206,7 +207,7 @@ const Notifications = () => {
     };
 
     markAsRead();
-  }, [notifications, api, setUnreadCount]);
+  }, [notifications, api]);
 
   const groupedNotifications = groupNotifications(notifications);
 

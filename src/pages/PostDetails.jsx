@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import useAxios from "../hooks/useAxios";
-import useAuth from "../hooks/useAuth";
+import useAuthStore from "../store/useAuthStore";
 import Sidebar from "../components/Sidebar.jsx";
 import { BASE_URL } from "../utils/apiConfig.js";
 import toast from "react-hot-toast";
@@ -21,7 +21,7 @@ const PostDetails = () => {
   const { id } = useParams();
   const api = useAxios();
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
+  const currentUser = useAuthStore((state) => state.user);
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -144,13 +144,13 @@ const PostDetails = () => {
     <div className="md:flex">
       <Sidebar />
       <main className="main-container flex-1 bg-white p-4 md:p-8">
-        <div className="max-w-6xl mx-auto bg-[#F8F9FA] rounded-2xl shadow-lg flex flex-col md:flex-row overflow-hidden max-h-[90vh]">
+        <div className="max-w-6xl mx-auto bg-[#F8F9FA] rounded-2xl shadow-lg flex flex-col md:flex-row overflow-hidden md:max-h-[90vh]">
           {/* Image */}
           <div className="w-full md:w-1/2 bg-black flex items-center justify-center">
             <img
               src={`${BASE_URL}/${post.image}`}
               alt={post.caption}
-              className="max-h-full w-auto h-auto object-contain"
+              className="max-h-[50vh] md:max-h-full w-auto h-auto object-contain"
             />
           </div>
 
@@ -198,7 +198,7 @@ const PostDetails = () => {
               </div>
             </div>
 
-            <div className="flex-grow overflow-y-auto p-6 border-y border-[#E9ECEF] space-y-4">
+            <div className="flex-grow overflow-y-auto p-6 border-y border-[#E9ECEF] space-y-4 max-h-[50vh] md:max-h-none">
               {/* Caption */}
               <div className="flex items-start gap-4">
                 <img

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
-import useAuth from "../hooks/useAuth.js";
+import useAuthStore from "../store/useAuthStore";
 import useAxios from "../hooks/useAxios.js";
 import { BASE_URL } from "../utils/apiConfig.js";
 import Loader from "../components/Loader.jsx";
 
 const Profile = () => {
-  const { user: loggedInUser } = useAuth();
+  const loggedInUser = useAuthStore((state) => state.user);
   const { profileId } = useParams();
   const api = useAxios();
 
