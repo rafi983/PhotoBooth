@@ -9,6 +9,7 @@ import useAxios from "../hooks/useAxios";
 import SuccessDialog from "../components/SuccessDialog.jsx";
 import ErrorDialog from "../components/ErrorDialog.jsx";
 import toast from "react-hot-toast";
+import { generateGoogleAuthPassword } from "../utils/googleAuth";
 
 const SignUp = () => {
   const { signupAndRedirect } = useAuth();
@@ -62,7 +63,7 @@ const SignUp = () => {
 
       const { displayName, email } = result.user;
 
-      const googlePassword = `GOOGLE_${email}_AUTH_${email.length}`;
+      const googlePassword = generateGoogleAuthPassword(result.user);
 
       await api.post("/auth/signup", {
         name: displayName,

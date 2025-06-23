@@ -8,6 +8,7 @@ import useAuth from "../hooks/useAuth";
 import useAxios from "../hooks/useAxios";
 import ErrorDialog from "../components/ErrorDialog.jsx";
 import toast from "react-hot-toast";
+import { generateGoogleAuthPassword } from "../utils/googleAuth";
 
 const Login = () => {
   const { login } = useAuth();
@@ -68,7 +69,7 @@ const Login = () => {
       const result = await signInWithPopup(auth, provider);
 
       const { email } = result.user;
-      const googlePassword = `GOOGLE_${email}_AUTH_${email.length}`;
+      const googlePassword = generateGoogleAuthPassword(result.user);
 
       try {
         const loginResponse = await api.post("/auth/login", {
