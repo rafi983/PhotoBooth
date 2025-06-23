@@ -204,6 +204,15 @@ const Login = () => {
               </button>
             </div>
 
+            <div className="flex justify-center mb-3">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-blue-500 hover:text-blue-700"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <div className="or-separator text-gray-500 text-sm font-semibold my-4">
               <span className="flex items-center">
                 <span className="flex-1 h-px bg-gray-300 mr-4" />

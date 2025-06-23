@@ -11,6 +11,8 @@ import EditProfile from "./pages/EditProfile";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import EditPost from "./pages/EditPost.jsx";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<SignUp />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       {/* Add this route */}
       <Route path="/post/:id" element={<PostDetails />} />
       {/* Protected Routes */}

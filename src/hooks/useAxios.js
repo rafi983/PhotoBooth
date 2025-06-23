@@ -4,7 +4,6 @@ import useAuthStore from "../store/useAuthStore";
 import { BASE_URL } from "../utils/apiConfig.js";
 
 const useAxios = () => {
-  // Get authentication state from zustand store
   const logout = useAuthStore((state) => state.logout);
   const setUser = useAuthStore((state) => state.setUser);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
@@ -19,7 +18,6 @@ const useAxios = () => {
 
     axiosInstance.interceptors.request.use(
       (config) => {
-        // Try zustand token first, fall back to direct localStorage access
         const token = accessToken || localStorage.getItem("token");
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -34,7 +32,6 @@ const useAxios = () => {
       async (error) => {
         const originalRequest = error.config;
 
-        // Handle 401 errors (unauthorized - token expired)
         if (
           error.response &&
           error.response.status === 401 &&
@@ -43,12 +40,10 @@ const useAxios = () => {
         ) {
           originalRequest._retry = true;
           try {
-            // Try zustand refreshToken first, fall back to direct localStorage
             const refreshTokenToUse =
               refreshToken || localStorage.getItem("refreshToken");
 
             if (!refreshTokenToUse) {
-              // No refresh token available, force logout
               logout();
               return Promise.reject(error);
             }
@@ -60,16 +55,13 @@ const useAxios = () => {
             const { accessToken: newAccessToken, user } = res.data;
             const newRefreshToken = res.data.refreshToken || refreshTokenToUse;
 
-            // Update both zustand and localStorage
             setAccessToken(newAccessToken);
             setRefreshToken(newRefreshToken);
             setUser(user);
 
-            // Update request headers
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             return axiosInstance(originalRequest);
           } catch (refreshError) {
-            // Clear authentication state on refresh failure
             logout();
             return Promise.reject(refreshError);
           }

@@ -8,7 +8,6 @@ const PrivateRoute = ({ children }) => {
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const location = useLocation();
 
-  // Show loading indicator until hydration completes
   if (!hasHydrated) {
     return (
       <div className="flex justify-center items-center h-screen">
