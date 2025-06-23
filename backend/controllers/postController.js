@@ -21,7 +21,7 @@ const populatePostData = async (post) => {
           return likeUserWithoutPassword;
         }
         return null;
-      }),
+      })
     );
     // Filter out null values in case some users don't exist
     likedUsers = likedUsers.filter((user) => user !== null);
@@ -32,15 +32,12 @@ const populatePostData = async (post) => {
   const commentsWithUserData = await Promise.all(
     comments.map(async (comment) => {
       const commentUser = await User.findById(comment.userId);
-      const { password, ...commentUserWithoutPassword } = commentUser || {
-        name: "Unknown",
-        avatar: null,
-      };
+      const { password, ...commentUserWithoutPassword } = commentUser || { name: "Unknown", avatar: null };
       return {
         ...comment,
         user: commentUserWithoutPassword,
       };
-    }),
+    })
   );
 
   return {
@@ -97,10 +94,7 @@ const getPosts = async (req, res) => {
       posts.map(async (post) => {
         // Get post author data
         const user = await User.findById(post.userId);
-        const { password, ...userWithoutPassword } = user || {
-          name: "Unknown",
-          avatar: null,
-        };
+        const { password, ...userWithoutPassword } = user || { name: "Unknown", avatar: null };
 
         // Populate likes and comments
         const populatedPost = await populatePostData(post);
@@ -109,7 +103,7 @@ const getPosts = async (req, res) => {
           ...populatedPost,
           user: userWithoutPassword,
         };
-      }),
+      })
     );
 
     res.json(postsWithCompleteData);
@@ -177,9 +171,7 @@ const updatePost = async (req, res) => {
 
     // Check if user is the post owner
     if (post.userId !== req.user._id) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to update this post" });
+      return res.status(403).json({ message: "Not authorized to update this post" });
     }
 
     // Prepare update object
@@ -227,9 +219,7 @@ const deletePost = async (req, res) => {
 
     // Check if user is the post owner
     if (post.userId !== req.user._id) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to delete this post" });
+      return res.status(403).json({ message: "Not authorized to delete this post" });
     }
 
     // Delete post
@@ -361,9 +351,7 @@ const updateComment = async (req, res) => {
 
     // Check if user is the comment owner
     if (comment.userId !== req.user._id) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to update this comment" });
+      return res.status(403).json({ message: "Not authorized to update this comment" });
     }
 
     // Update comment
@@ -407,9 +395,7 @@ const deleteComment = async (req, res) => {
 
     // Check if user is the comment owner
     if (comment.userId !== req.user._id) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to delete this comment" });
+      return res.status(403).json({ message: "Not authorized to delete this comment" });
     }
 
     // Delete comment
@@ -447,7 +433,7 @@ const getUserPosts = async (req, res) => {
     const postsWithCompleteData = await Promise.all(
       posts.map(async (post) => {
         return await populatePostData(post);
-      }),
+      })
     );
 
     res.json({

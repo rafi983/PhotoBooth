@@ -3,30 +3,12 @@ const path = require("path");
 
 // Initialize the databases
 const db = {
-  users: new Datastore({
-    filename: path.join(__dirname, "../data/users.db"),
-    autoload: true,
-  }),
-  posts: new Datastore({
-    filename: path.join(__dirname, "../data/posts.db"),
-    autoload: true,
-  }),
-  comments: new Datastore({
-    filename: path.join(__dirname, "../data/comments.db"),
-    autoload: true,
-  }),
-  notifications: new Datastore({
-    filename: path.join(__dirname, "../data/notifications.db"),
-    autoload: true,
-  }),
-  pokes: new Datastore({
-    filename: path.join(__dirname, "../data/pokes.db"),
-    autoload: true,
-  }),
-  tokens: new Datastore({
-    filename: path.join(__dirname, "../data/tokens.db"),
-    autoload: true,
-  }),
+  users: new Datastore({ filename: path.join(__dirname, "../data/users.db"), autoload: true }),
+  posts: new Datastore({ filename: path.join(__dirname, "../data/posts.db"), autoload: true }),
+  comments: new Datastore({ filename: path.join(__dirname, "../data/comments.db"), autoload: true }),
+  notifications: new Datastore({ filename: path.join(__dirname, "../data/notifications.db"), autoload: true }),
+  pokes: new Datastore({ filename: path.join(__dirname, "../data/pokes.db"), autoload: true }),
+  tokens: new Datastore({ filename: path.join(__dirname, "../data/tokens.db"), autoload: true }),
 };
 
 // Create indexes
@@ -35,11 +17,6 @@ db.posts.ensureIndex({ fieldName: "userId" });
 db.comments.ensureIndex({ fieldName: "postId" });
 db.notifications.ensureIndex({ fieldName: "userId" });
 db.pokes.ensureIndex({ fieldName: "toUserId" });
-
-// Set up periodic compaction for all databases to ensure disk persistence
-Object.values(db).forEach((database) => {
-  database.persistence.setAutocompactionInterval(30000); // Compact every 30 seconds
-});
 
 // Create a helper function to promisify NeDB operations
 const promisifyDb = (db) => {
