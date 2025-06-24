@@ -28,7 +28,7 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      const response = await api.post("/auth/forgot-password", {
+      await api.post("/auth/forgot-password", {
         email: data.email,
       });
 
@@ -45,21 +45,24 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="max-w-md w-full space-y-8 bg-white/90 rounded-3xl shadow-2xl p-8 backdrop-blur-md animate-fade-in">
         <div className="flex flex-col items-center">
           <Link to="/">
-            <img src={logo} alt="Logo" className="h-12 mb-6" />
+            <img src={logo} alt="Logo" className="h-14 mb-6 drop-shadow-lg" />
           </Link>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="text-center text-3xl font-extrabold text-pink-600 tracking-tight">
             Forgot Password
           </h2>
+          <p className="text-center text-gray-500 mt-2">
+            Enter your email to receive reset instructions
+          </p>
         </div>
 
         {error && <ErrorDialog message={error} onClose={() => setError("")} />}
 
         {isSubmitted ? (
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-pink-50 p-6 rounded-xl shadow-inner">
             <p className="text-center text-gray-700">
               If an account exists with the provided email, you will receive
               password reset instructions. Please check your email (or the
@@ -68,7 +71,7 @@ const ForgotPassword = () => {
             <div className="mt-6 flex justify-center">
               <Link
                 to="/login"
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-pink-600 hover:text-pink-800 font-medium transition"
               >
                 Return to login
               </Link>
@@ -76,7 +79,7 @@ const ForgotPassword = () => {
           </div>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            <div className="rounded-md shadow-sm -space-y-px">
+            <div className="rounded-md shadow-sm">
               <div>
                 <label htmlFor="email" className="sr-only">
                   Email address
@@ -85,9 +88,9 @@ const ForgotPassword = () => {
                   id="email"
                   type="email"
                   autoComplete="email"
-                  className={`appearance-none rounded-md relative block w-full px-3 py-2 border ${
-                    errors.email ? "border-red-300" : "border-gray-300"
-                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                  className={`appearance-none rounded-lg relative block w-full px-4 py-3 border ${
+                    errors.email ? "border-pink-400" : "border-gray-300"
+                  } placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 focus:z-10 sm:text-base transition`}
                   placeholder="Email address"
                   {...register("email", {
                     required: "Email is required",
@@ -98,7 +101,7 @@ const ForgotPassword = () => {
                   })}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-pink-500 text-xs mt-1">
                     {errors.email.message}
                   </p>
                 )}
@@ -109,16 +112,20 @@ const ForgotPassword = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-gradient-to-r from-pink-500 to-pink-400 hover:from-pink-600 hover:to-pink-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition"
               >
-                {isLoading ? "Processing..." : "Send Reset Instructions"}
+                {isLoading ? (
+                  <span className="animate-pulse">Processing...</span>
+                ) : (
+                  "Send Reset Instructions"
+                )}
               </button>
             </div>
 
             <div className="flex items-center justify-center">
               <Link
                 to="/login"
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-pink-500 hover:text-pink-700 font-medium transition"
               >
                 Back to login
               </Link>
@@ -132,7 +139,7 @@ const ForgotPassword = () => {
         onClose={() => setShowInstructionsModal(false)}
       >
         <div className="space-y-4">
-          <h4 className="font-medium text-blue-600">
+          <h4 className="font-medium text-pink-600">
             Development Environment Instructions
           </h4>
           <p>
@@ -143,11 +150,11 @@ const ForgotPassword = () => {
           <ol className="list-decimal ml-5 space-y-2">
             <li>
               Check your{" "}
-              <span className="font-semibold text-blue-600">
+              <span className="font-semibold text-pink-600">
                 backend server console
               </span>{" "}
               for a message like:
-              <div className="bg-gray-100 p-2 mt-1 rounded font-mono text-sm">
+              <div className="bg-pink-100 p-2 mt-1 rounded font-mono text-sm">
                 Reset token for example@email.com: YOUR_TOKEN_HERE
               </div>
             </li>
@@ -157,7 +164,7 @@ const ForgotPassword = () => {
               <ul className="list-disc ml-5 mt-1">
                 <li>
                   Navigate to:{" "}
-                  <code className="bg-gray-100 px-1">
+                  <code className="bg-pink-100 px-1 rounded">
                     localhost:5173/reset-password?token=YOUR_TOKEN_HERE
                   </code>
                 </li>
@@ -169,11 +176,11 @@ const ForgotPassword = () => {
             </li>
           </ol>
 
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-2">
+          <div className="bg-pink-50 border-l-4 border-pink-400 p-4 mt-2 rounded">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg
-                  className="h-5 w-5 text-yellow-400"
+                  className="h-5 w-5 text-pink-400"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -186,7 +193,7 @@ const ForgotPassword = () => {
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-yellow-700">
+                <p className="text-sm text-pink-700">
                   In a production environment, this token would be sent via
                   email with a clickable link.
                 </p>

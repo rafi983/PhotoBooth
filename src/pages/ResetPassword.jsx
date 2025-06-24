@@ -59,25 +59,25 @@ const ResetPassword = () => {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="max-w-md w-full space-y-8">
+      <div className="min-h-screen flex items-center justify-center bg-white px-4">
+        <div className="max-w-md w-full space-y-8 bg-white/90 rounded-3xl shadow-2xl p-8 backdrop-blur-md animate-fade-in">
           <div className="flex flex-col items-center">
             <Link to="/">
-              <img src={logo} alt="Logo" className="h-12 mb-6" />
+              <img src={logo} alt="Logo" className="h-14 mb-6 drop-shadow-lg" />
             </Link>
-            <h2 className="text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="text-center text-3xl font-extrabold text-pink-600">
               Reset Password
             </h2>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <p className="text-center text-red-500">
+          <div className="bg-pink-50 p-6 rounded-xl shadow-inner">
+            <p className="text-center text-pink-500">
               Invalid or missing password reset token
             </p>
             <div className="mt-6 flex justify-center">
               <Link
                 to="/forgot-password"
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-pink-600 hover:text-pink-800 font-medium transition"
               >
                 Request a new password reset
               </Link>
@@ -89,15 +89,18 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="max-w-md w-full space-y-8 bg-white/90 rounded-3xl shadow-2xl p-8 backdrop-blur-md animate-fade-in">
         <div className="flex flex-col items-center">
           <Link to="/">
-            <img src={logo} alt="Logo" className="h-12 mb-6" />
+            <img src={logo} alt="Logo" className="h-14 mb-6 drop-shadow-lg" />
           </Link>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="text-center text-3xl font-extrabold text-pink-600 tracking-tight">
             Reset Your Password
           </h2>
+          <p className="text-center text-gray-500 mt-2">
+            Enter your new password below
+          </p>
         </div>
 
         {error && <ErrorDialog message={error} onClose={() => setError("")} />}
@@ -115,9 +118,10 @@ const ResetPassword = () => {
                 <input
                   id="newPassword"
                   type={showPassword ? "text" : "password"}
-                  className={`appearance-none rounded-md relative block w-full px-3 py-2 border ${
-                    errors.newPassword ? "border-red-300" : "border-gray-300"
-                  } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  className={`appearance-none rounded-lg relative block w-full px-4 py-3 border ${
+                    errors.newPassword ? "border-pink-400" : "border-gray-300"
+                  } placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 focus:z-10 sm:text-base transition`}
+                  placeholder="New password"
                   {...register("newPassword", {
                     required: "New password is required",
                     minLength: {
@@ -139,7 +143,7 @@ const ResetPassword = () => {
                 </button>
               </div>
               {errors.newPassword && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-pink-500 text-xs mt-1">
                   {errors.newPassword.message}
                 </p>
               )}
@@ -155,9 +159,10 @@ const ResetPassword = () => {
               <input
                 id="confirmPassword"
                 type={showPassword ? "text" : "password"}
-                className={`appearance-none rounded-md relative block w-full px-3 py-2 border ${
-                  errors.confirmPassword ? "border-red-300" : "border-gray-300"
-                } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                className={`appearance-none rounded-lg relative block w-full px-4 py-3 border ${
+                  errors.confirmPassword ? "border-pink-400" : "border-gray-300"
+                } placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 focus:z-10 sm:text-base transition`}
+                placeholder="Confirm password"
                 {...register("confirmPassword", {
                   required: "Please confirm your password",
                   validate: (value) =>
@@ -165,7 +170,7 @@ const ResetPassword = () => {
                 })}
               />
               {errors.confirmPassword && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-pink-500 text-xs mt-1">
                   {errors.confirmPassword.message}
                 </p>
               )}
@@ -176,16 +181,20 @@ const ResetPassword = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-gradient-to-r from-pink-500 to-pink-400 hover:from-pink-600 hover:to-pink-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition"
             >
-              {isLoading ? "Processing..." : "Reset Password"}
+              {isLoading ? (
+                <span className="animate-pulse">Processing...</span>
+              ) : (
+                "Reset Password"
+              )}
             </button>
           </div>
 
           <div className="flex items-center justify-center">
             <Link
               to="/login"
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-pink-500 hover:text-pink-700 font-medium transition"
             >
               Back to login
             </Link>
