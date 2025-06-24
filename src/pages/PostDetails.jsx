@@ -242,22 +242,32 @@ const PostDetails = () => {
                   <h2 className="text-sm font-medium text-gray-700">
                     Comments ({post.comments?.length || 0})
                   </h2>
-                  <button
-                    onClick={() =>
-                      post.likes.length > 0 && setShowLikesModal(true)
-                    }
-                    className="text-sm font-medium text-gray-700 hover:text-pink-600 transition-colors flex items-center gap-1.5"
-                  >
-                    {isLiked ? (
-                      <LikeIconFilled className="w-5 h-5 text-pink-600" />
-                    ) : (
-                      <LikeIcon className="w-5 h-5" />
-                    )}
-                    <span>
-                      {post.likes.length}{" "}
-                      {post.likes.length === 1 ? "like" : "likes"}
-                    </span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleLike}
+                      className="flex items-center gap-1.5 text-gray-700 hover:text-pink-600 transition-colors group"
+                      aria-label={isLiked ? "Unlike post" : "Like post"}
+                    >
+                      <span className="transform group-hover:scale-110 transition-transform duration-200">
+                        {isLiked ? (
+                          <LikeIconFilled className="w-5 h-5 text-pink-600" />
+                        ) : (
+                          <LikeIcon className="w-5 h-5" />
+                        )}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        post.likes.length > 0 && setShowLikesModal(true)
+                      }
+                      className="text-sm font-medium text-gray-700 hover:text-pink-600 transition-colors flex items-center gap-1.5"
+                    >
+                      <span>
+                        {post.likes.length}{" "}
+                        {post.likes.length === 1 ? "like" : "likes"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Comments List */}
