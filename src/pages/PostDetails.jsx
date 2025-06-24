@@ -143,10 +143,10 @@ const PostDetails = () => {
   return (
     <div className="md:flex">
       <Sidebar />
-      <main className="main-container flex-1 bg-white p-4 md:p-8">
-        <div className="max-w-6xl mx-auto bg-[#F8F9FA] rounded-2xl shadow-lg flex flex-col md:flex-row overflow-hidden md:max-h-[90vh]">
+      <main className="main-container flex-1 bg-gradient-to-tr from-white to-pink-50 p-4 md:p-8 min-h-screen">
+        <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg flex flex-col md:flex-row overflow-hidden md:max-h-[85vh] animate-fadeIn">
           {/* Image */}
-          <div className="w-full md:w-1/2 bg-black flex items-center justify-center">
+          <div className="w-full md:w-1/2 bg-gray-50 flex items-center justify-center">
             <img
               src={`${BASE_URL}/${post.image}`}
               alt={post.caption}
@@ -156,210 +156,264 @@ const PostDetails = () => {
 
           {/* Details */}
           <div className="w-full md:w-1/2 flex flex-col">
-            <div className="p-6 shrink-0">
+            {/* Header */}
+            <div className="p-4 md:p-6 border-b border-gray-100 shrink-0">
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={
-                      post.user?.avatar
-                        ? `${BASE_URL}/${post.user.avatar}`
-                        : `https://api.dicebear.com/8.x/initials/svg?seed=${post.user?.name}`
-                    }
-                    className="w-12 h-12 rounded-full object-cover"
-                    alt={post.user?.name}
-                  />
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/profile/${post.user?._id}`}
+                    className="w-10 h-10 rounded-full overflow-hidden shrink-0 ring-2 ring-pink-100 hover:ring-pink-300 transition-all duration-300"
+                  >
+                    <img
+                      src={
+                        post.user?.avatar
+                          ? `${BASE_URL}/${post.user.avatar}`
+                          : `https://api.dicebear.com/8.x/initials/svg?seed=${post.user?.name}`
+                      }
+                      className="w-full h-full object-cover"
+                      alt={post.user?.name}
+                    />
+                  </Link>
                   <div>
                     <Link
                       to={`/profile/${post.user?._id}`}
-                      className="font-bold text-base text-[#212529] hover:underline"
+                      className="font-medium text-gray-800 hover:text-pink-600 transition-colors duration-200 block"
                     >
                       {post.user?.name || "Unknown User"}
                     </Link>
-                    <p className="text-xs text-[#6C757D]">{postDate}</p>
+                    <p className="text-xs text-gray-500">{postDate}</p>
                   </div>
                 </div>
 
-                {isOwner && (
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => navigate(`/edit-post/${post._id}`)}
-                      className="text-[#6C757D] hover:text-blue-600"
-                    >
-                      <EditIcon />
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteModal(true)}
-                      className="text-[#6C757D] hover:text-red-500"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                )}
+                <div className="flex items-center gap-3">
+                  <ShareButton postId={post._id} />
+
+                  {isOwner && (
+                    <>
+                      <button
+                        onClick={() => navigate(`/edit-post/${post._id}`)}
+                        className="text-gray-500 hover:text-blue-600 transition-colors"
+                        title="Edit post"
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="text-gray-500 hover:text-red-500 transition-colors"
+                        title="Delete post"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="flex-grow overflow-y-auto p-6 border-y border-[#E9ECEF] space-y-4 max-h-[50vh] md:max-h-none">
+            {/* Content Area */}
+            <div className="flex-grow overflow-y-auto p-4 md:p-6 space-y-5 max-h-[50vh] md:max-h-none custom-scrollbar">
               {/* Caption */}
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3 bg-gray-50 p-4 rounded-xl">
                 <img
                   src={
                     post.user?.avatar
                       ? `${BASE_URL}/${post.user.avatar}`
-                      : `https://api.dicebear.com/8.x/initials/svg?seed=${post.user.name}`
+                      : `https://api.dicebear.com/8.x/initials/svg?seed=${post.user?.name}`
                   }
                   className="w-10 h-10 rounded-full object-cover mt-1 shrink-0"
-                  alt="user"
+                  alt={post.user?.name}
                 />
-                <p className="text-sm text-[#212529] leading-relaxed flex-1">
-                  <Link
-                    to={`/profile/${post.user?._id}`}
-                    className="font-bold mr-2 hover:underline"
-                  >
-                    {post.user?.name}
-                  </Link>
-                  {post.caption}
-                </p>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    <Link
+                      to={`/profile/${post.user?._id}`}
+                      className="font-medium text-gray-800 hover:text-pink-600 transition-colors mr-2"
+                    >
+                      {post.user?.name}
+                    </Link>
+                    {post.caption}
+                  </p>
+                </div>
               </div>
 
-              <div className="border-b border-[#E9ECEF]"></div>
-
-              {/* Comments */}
-              <h2 className="text-sm font-semibold text-[#6C757D]">
-                Comments ({post.comments?.length || 0})
-              </h2>
-
-              {post.comments?.map((comment) => (
-                <div key={comment._id} className="flex items-start gap-4 group">
-                  <img
-                    src={
-                      comment.user?.avatar
-                        ? `${BASE_URL}/${comment.user.avatar}`
-                        : `https://api.dicebear.com/8.x/initials/svg?seed=${comment.user?.name}`
+              {/* Comments Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-medium text-gray-700">
+                    Comments ({post.comments?.length || 0})
+                  </h2>
+                  <button
+                    onClick={() =>
+                      post.likes.length > 0 && setShowLikesModal(true)
                     }
-                    className="w-10 h-10 rounded-full object-cover mt-1 shrink-0"
-                    alt="commenter"
-                  />
-                  <div className="flex-1">
-                    {editingCommentId === comment._id ? (
-                      <div className="flex flex-col">
-                        <textarea
-                          value={editingText}
-                          onChange={(e) => setEditingText(e.target.value)}
-                          className="w-full text-sm p-2 border border-gray-300 rounded-md resize-none"
-                          rows="3"
-                          autoFocus
-                        />
-                        <div className="flex justify-end gap-2 mt-2">
-                          <button
-                            onClick={() => setEditingCommentId(null)}
-                            className="text-xs text-gray-600 hover:text-black"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={() => handleEditComment(comment._id)}
-                            className="text-xs text-blue-600 hover:text-black"
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </div>
+                    className="text-sm font-medium text-gray-700 hover:text-pink-600 transition-colors flex items-center gap-1.5"
+                  >
+                    {isLiked ? (
+                      <LikeIconFilled className="w-5 h-5 text-pink-600" />
                     ) : (
-                      <p className="text-sm text-[#212529] leading-relaxed">
-                        <Link
-                          to={`/profile/${comment.user?._id}`}
-                          className="font-bold mr-2 hover:underline"
-                        >
-                          {comment.user?.name}
-                        </Link>
-                        {comment.text}
-                      </p>
+                      <LikeIcon className="w-5 h-5" />
                     )}
-                  </div>
-
-                  {comment.user?._id === currentUser?._id &&
-                    editingCommentId !== comment._id && (
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => {
-                            setEditingCommentId(comment._id);
-                            setEditingText(comment.text);
-                          }}
-                          className="text-[#6C757D] hover:text-blue-600"
-                        >
-                          <EditIcon />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteComment(comment._id)}
-                          className="text-[#6C757D] hover:text-red-500"
-                        >
-                          <TrashIcon />
-                        </button>
-                      </div>
-                    )}
+                    <span>
+                      {post.likes.length}{" "}
+                      {post.likes.length === 1 ? "like" : "likes"}
+                    </span>
+                  </button>
                 </div>
-              ))}
+
+                {/* Comments List */}
+                <div className="space-y-4">
+                  {post.comments?.map((comment) => (
+                    <div
+                      key={comment._id}
+                      className="flex items-start gap-3 group hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                    >
+                      <Link
+                        to={`/profile/${comment.user?._id}`}
+                        className="shrink-0"
+                      >
+                        <img
+                          src={
+                            comment.user?.avatar
+                              ? `${BASE_URL}/${comment.user.avatar}`
+                              : `https://api.dicebear.com/8.x/initials/svg?seed=${comment.user?.name}`
+                          }
+                          className="w-8 h-8 rounded-full object-cover"
+                          alt={comment.user?.name}
+                        />
+                      </Link>
+                      <div className="flex-1">
+                        {editingCommentId === comment._id ? (
+                          <div className="flex flex-col">
+                            <textarea
+                              value={editingText}
+                              onChange={(e) => setEditingText(e.target.value)}
+                              className="w-full text-sm p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400"
+                              rows="3"
+                              autoFocus
+                            />
+                            <div className="flex justify-end gap-2 mt-2">
+                              <button
+                                onClick={() => setEditingCommentId(null)}
+                                className="px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => handleEditComment(comment._id)}
+                                className="px-3 py-1 text-xs bg-pink-500 text-white hover:bg-pink-600 rounded-md transition-colors"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <Link
+                                  to={`/profile/${comment.user?._id}`}
+                                  className="font-medium text-gray-800 hover:text-pink-600 transition-colors text-sm"
+                                >
+                                  {comment.user?.name}
+                                </Link>
+                                <p className="text-sm text-gray-600 mt-1 break-words">
+                                  {comment.text}
+                                </p>
+                              </div>
+                              {comment.user?._id === currentUser?._id && (
+                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => {
+                                      setEditingCommentId(comment._id);
+                                      setEditingText(comment.text);
+                                    }}
+                                    className="text-gray-400 hover:text-blue-600 transition-colors"
+                                  >
+                                    <EditIcon className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteComment(comment._id)
+                                    }
+                                    className="text-gray-400 hover:text-red-500 transition-colors"
+                                  >
+                                    <TrashIcon className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {new Date(comment.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            <div className="p-6">
-              <div className="flex items-center gap-2">
-                <button onClick={handleLike} className="p-1">
-                  {isLiked ? <LikeIconFilled /> : <LikeIcon />}
-                </button>
-                <button className="p-1">
-                  <CommentIcon />
-                </button>
-                <ShareButton postId={post._id} />
-              </div>
-              <button
-                className="text-sm font-bold text-[#212529] mt-3 focus:outline-none hover:underline"
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  cursor: post.likes?.length > 0 ? "pointer" : "default",
-                }}
-                onClick={() =>
-                  post.likes?.length > 0 && setShowLikesModal(true)
-                }
-                type="button"
-                disabled={post.likes?.length === 0}
-              >
-                {post.likes?.length || 0} likes
-              </button>
-
+            {/* Comment Form */}
+            <div className="shrink-0 p-4 border-t border-gray-100">
               <form
                 onSubmit={handleCommentSubmit}
-                className="flex items-center gap-3 mt-4"
+                className="flex gap-3 items-center"
               >
-                <img
-                  src={
-                    currentUser?.avatar
-                      ? `${BASE_URL}/${currentUser.avatar}`
-                      : `https://api.dicebear.com/8.x/initials/svg?seed=${currentUser?.name}`
-                  }
-                  alt="Your avatar"
-                  className="w-8 h-8 rounded-full object-cover"
-                />
                 <input
                   type="text"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="Add a comment..."
-                  className="w-full border-b text-sm focus:outline-none focus:border-blue-500"
+                  className="flex-grow text-sm bg-gray-50 border border-gray-100 focus:outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-200 rounded-full py-3 px-4 placeholder-gray-400"
                 />
                 <button
                   type="submit"
                   disabled={!comment.trim()}
-                  className="text-blue-500 disabled:text-gray-400"
+                  className={`p-3 rounded-full transition-colors ${
+                    comment.trim()
+                      ? "bg-gradient-to-r from-pink-600 to-pink-500 text-white shadow-md hover:shadow-lg"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  }`}
                 >
-                  <SendIcon />
+                  <SendIcon className="w-5 h-5" />
                 </button>
               </form>
             </div>
           </div>
         </div>
-        {/* Likes Modal */}
+
+        {/* Related Posts */}
+        <div className="mt-8 max-w-6xl mx-auto">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
+            More from {post.user?.name}
+          </h2>
+          {morePosts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {morePosts.map((relatedPost) => (
+                <Link
+                  key={relatedPost._id}
+                  to={`/post/${relatedPost._id}`}
+                  className="aspect-square rounded-lg overflow-hidden bg-gray-100 shadow-md hover:shadow-lg transition-shadow hover:opacity-90"
+                >
+                  <img
+                    src={`${BASE_URL}/${relatedPost.image}`}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white/90 rounded-2xl shadow-md p-6 text-center">
+              <p className="text-gray-600">
+                {post.user?.name} hasn't shared any other posts yet.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Modals */}
         {showLikesModal && (
           <LikesModal
             users={post.likes}
@@ -367,49 +421,24 @@ const PostDetails = () => {
           />
         )}
 
-        {/* More Posts */}
-        <div className="max-w-6xl mx-auto mt-12">
-          <h2 className="text-sm font-semibold text-gray-500 mb-4 border-t border-gray-200 pt-8">
-            More posts from{" "}
-            <span className="text-black font-bold">{post.user?.name}</span>
-          </h2>
-
-          {morePosts.length === 0 ? (
-            <p className="text-sm text-gray-400">
-              No other posts by this user.
-            </p>
-          ) : (
-            <div className="grid grid-cols-3 gap-1 md:gap-4">
-              {morePosts.map((p) => (
-                <Link to={`/post/${p._id}`} key={p._id}>
-                  <img
-                    src={`${BASE_URL}/${p.image}`}
-                    alt="More posts"
-                    className="grid-image"
-                  />
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-        {/* Delete Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
-              <h2 className="text-lg font-bold mb-2">Delete Post</h2>
-              <p className="text-sm text-gray-600 mb-6">
-                Are you sure you want to permanently delete this post?
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-2xl">
+              <h3 className="font-bold text-lg text-gray-800">Delete Post</h3>
+              <p className="py-4 text-gray-600">
+                Are you sure you want to delete this post? This action cannot be
+                undone.
               </p>
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeletePost}
-                  className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
                 >
                   Delete
                 </button>
