@@ -17,15 +17,12 @@ import ResetPassword from "./pages/ResetPassword";
 function App() {
   return (
     <Routes>
-      {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<SignUp />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      {/* Add this route */}
       <Route path="/post/:id" element={<PostDetails />} />
-      {/* Protected Routes */}
       <Route
         path="/notifications"
         element={
