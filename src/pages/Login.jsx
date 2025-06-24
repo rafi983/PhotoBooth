@@ -1,7 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getAuth,
+  getRedirectResult,
+} from "firebase/auth";
 import { auth } from "../firebase/config";
 import logo from "../assets/logo-2.svg";
 import useAuthStore from "../store/useAuthStore";
@@ -66,71 +72,20 @@ const Login = () => {
       setIsLoading(true);
 
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
 
-      if (user.email) {
-        // Generate a password for Google Auth
-        const password = generateGoogleAuthPassword(user.uid);
-
-        try {
-          // First try login
-          const response = await api.post("/auth/login", {
-            email: user.email,
-            password,
-            isGoogle: true,
-          });
-
-          const accessToken = response?.data?.accessToken;
-          const userData = response?.data?.user;
-          const refreshToken = response?.data?.refreshToken;
-
-          if (accessToken && userData) {
-            setUser(userData);
-            setAccessToken(accessToken);
-            setRefreshToken(refreshToken);
-            navigate("/");
-            toast.success(`Welcome back, ${userData.name}!`);
-            return;
-          }
-        } catch (err) {
-          // If login fails, try registration
-          if (err.response?.status === 404) {
-            // 404 means user not found
-            try {
-              const response = await api.post("/auth/register", {
-                name: user.displayName,
-                email: user.email,
-                password,
-                isGoogle: true,
-              });
-
-              const accessToken = response?.data?.accessToken;
-              const userData = response?.data?.user;
-              const refreshToken = response?.data?.refreshToken;
-
-              if (accessToken && userData) {
-                setUser(userData);
-                setAccessToken(accessToken);
-                setRefreshToken(refreshToken);
-                navigate("/");
-                toast.success(`Welcome, ${userData.name}!`);
-                return;
-              }
-            } catch (regErr) {
-              console.error("Registration failed:", regErr);
-              setError(
-                regErr.response?.data?.message ||
-                  "Registration with Google failed.",
-              );
-            }
-          } else {
-            console.error("Login failed:", err);
-            setError(
-              err.response?.data?.message || "Login with Google failed.",
-            );
-          }
-        }
+      // Try to use popup first, but fallback to redirect if it fails
+      try {
+        const result = await signInWithPopup(auth, provider);
+        await processGoogleUser(result.user);
+      } catch (popupError) {
+        console.log(
+          "Popup blocked or failed, falling back to redirect",
+          popupError,
+        );
+        // If popup is blocked or fails for any reason, use redirect instead
+        // We'll handle the redirect result in a useEffect
+        const auth = getAuth();
+        await signInWithRedirect(auth, provider);
       }
     } catch (err) {
       console.error("Google Auth error:", err);
@@ -139,6 +94,120 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  // Helper function to process Google user
+  const processGoogleUser = async (user) => {
+    if (!user?.email) {
+      setError("Could not get email from Google account");
+      return;
+    }
+
+    try {
+      console.log("Processing Google user:", user.email);
+      // Generate a password for Google Auth - Fixed how we call this function
+      const password = generateGoogleAuthPassword(user);
+
+      try {
+        // First try login
+        const response = await api.post("/auth/login", {
+          email: user.email,
+          password,
+          isGoogle: true,
+        });
+
+        const accessToken = response?.data?.accessToken;
+        const userData = response?.data?.user;
+        const refreshToken = response?.data?.refreshToken;
+
+        if (accessToken && userData) {
+          // Set auth data in store
+          setUser(userData);
+          setAccessToken(accessToken);
+          setRefreshToken(refreshToken);
+
+          // Force a delay before navigation to ensure state is updated
+          setTimeout(() => {
+            navigate("/");
+            toast.success(`Welcome back, ${userData.name}!`);
+          }, 100);
+          return;
+        }
+      } catch (err) {
+        // If login fails, try registration
+        if (err.response?.status === 404) {
+          // 404 means user not found
+          try {
+            const response = await api.post("/auth/register", {
+              name: user.displayName || "Google User",
+              email: user.email,
+              password,
+              isGoogle: true,
+            });
+
+            const accessToken = response?.data?.accessToken;
+            const userData = response?.data?.user;
+            const refreshToken = response?.data?.refreshToken;
+
+            if (accessToken && userData) {
+              // Set auth data in store
+              setUser(userData);
+              setAccessToken(accessToken);
+              setRefreshToken(refreshToken);
+
+              // Force a delay before navigation to ensure state is updated
+              setTimeout(() => {
+                navigate("/");
+                toast.success(`Welcome, ${userData.name}!`);
+              }, 100);
+              return;
+            }
+          } catch (regErr) {
+            console.error("Registration failed:", regErr);
+            setError(
+              regErr.response?.data?.message ||
+                "Registration with Google failed.",
+            );
+          }
+        } else {
+          console.error("Login failed:", err);
+          setError(err.response?.data?.message || "Login with Google failed.");
+        }
+      }
+    } catch (err) {
+      console.error("Error processing Google user:", err);
+      setError("Failed to process Google authentication. Please try again.");
+    }
+  };
+
+  // Fix the useEffect hook to handle redirect result with proper dependencies
+  useEffect(() => {
+    let isMounted = true;
+
+    const handleRedirectResult = async () => {
+      try {
+        if (isMounted) setIsLoading(true);
+        const auth = getAuth();
+        const result = await getRedirectResult(auth);
+
+        if (result?.user && isMounted) {
+          console.log("Got redirect result for user:", result.user.email);
+          await processGoogleUser(result.user);
+        }
+      } catch (err) {
+        console.error("Error handling redirect result:", err);
+        if (isMounted)
+          setError("Failed to complete Google sign-in. Please try again.");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    handleRedirectResult();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate, setUser, setAccessToken, setRefreshToken, api]); // Include all dependencies used by processGoogleUser
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-white to-pink-50 px-4 py-12">
@@ -159,7 +228,9 @@ const Login = () => {
           </p>
         </div>
 
-        {error && <ErrorDialog message={error} onClose={() => setError("")} />}
+        {error && (
+          <ErrorDialog message={error} onConfirm={() => setError("")} />
+        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="rounded-md shadow-sm space-y-4">

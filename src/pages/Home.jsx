@@ -11,6 +11,7 @@ import { BASE_URL } from "../utils/apiConfig";
 
 const Home = () => {
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const api = useAxios();
   const observer = useRef();
 

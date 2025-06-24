@@ -1,7 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getAuth,
+  getRedirectResult,
+} from "firebase/auth";
 import { auth } from "../firebase/config";
 import logo from "../assets/logo-2.svg";
 import useAuthStore from "../store/useAuthStore";
@@ -104,28 +110,20 @@ const SignUp = () => {
     try {
       setIsLoading(true);
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const { displayName, email } = result.user;
-      const googlePassword = generateGoogleAuthPassword(result.user);
-      await api.post("/auth/signup", {
-        name: displayName,
-        email: email,
-        password: googlePassword,
-      });
-      const loginResponse = await api.post("/auth/login", {
-        email: email,
-        password: googlePassword,
-      });
-      const accessToken = loginResponse?.data?.accessToken;
-      const user = loginResponse?.data?.user;
-      const refreshToken = loginResponse?.data?.refreshToken;
-      if (accessToken && user) {
-        setUser(user);
-        setAccessToken(accessToken);
-        setRefreshToken(refreshToken);
-        navigate("/");
-      } else {
-        setError("Failed to authenticate after Google signup");
+
+      // Try to use popup first, but fallback to redirect if it fails
+      try {
+        const result = await signInWithPopup(auth, provider);
+        await processGoogleUser(result.user);
+      } catch (popupError) {
+        console.log(
+          "Popup blocked or failed, falling back to redirect",
+          popupError,
+        );
+        // If popup is blocked or fails for any reason, use redirect instead
+        // We'll handle the redirect result in the useEffect
+        const auth = getAuth();
+        await signInWithRedirect(auth, provider);
       }
     } catch (err) {
       if (err.code === "auth/popup-closed-by-user") {
@@ -136,12 +134,100 @@ const SignUp = () => {
         setError(
           "Failed to sign up with Google. Please try again or use email registration.",
         );
-        toast.error("Google signup error:", err);
+        console.error("Google signup error:", err);
       }
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Helper function to process Google user
+  const processGoogleUser = async (user) => {
+    if (!user?.email) {
+      setError("Could not get email from Google account");
+      return;
+    }
+
+    try {
+      const { displayName, email } = user;
+      const googlePassword = generateGoogleAuthPassword(user);
+
+      await api.post("/auth/signup", {
+        name: displayName || "Google User",
+        email: email,
+        password: googlePassword,
+      });
+
+      const loginResponse = await api.post("/auth/login", {
+        email: email,
+        password: googlePassword,
+      });
+
+      const accessToken = loginResponse?.data?.accessToken;
+      const userData = loginResponse?.data?.user;
+      const refreshToken = loginResponse?.data?.refreshToken;
+
+      if (accessToken && userData) {
+        setUser(userData);
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+
+        // Force a delay before navigation to ensure state is updated
+        setTimeout(() => {
+          navigate("/edit-profile");
+          toast.success(`Welcome to PhotoBooth, ${userData.name}!`);
+        }, 100);
+      } else {
+        setError("Failed to authenticate after Google signup");
+      }
+    } catch (err) {
+      console.error("Error processing Google user:", err);
+      setError("Failed to process Google authentication. Please try again.");
+    }
+  };
+
+  // Handle redirect result for Google sign-in
+  useEffect(() => {
+    const auth = getAuth();
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          const { displayName, email } = result.user;
+          const googlePassword = generateGoogleAuthPassword(result.user);
+          // Automatically sign up and log in the user
+          api
+            .post("/auth/signup", {
+              name: displayName,
+              email: email,
+              password: googlePassword,
+            })
+            .then(() => {
+              return api.post("/auth/login", {
+                email: email,
+                password: googlePassword,
+              });
+            })
+            .then((loginResponse) => {
+              const accessToken = loginResponse?.data?.accessToken;
+              const user = loginResponse?.data?.user;
+              const refreshToken = loginResponse?.data?.refreshToken;
+              if (accessToken && user) {
+                setUser(user);
+                setAccessToken(accessToken);
+                setRefreshToken(refreshToken);
+                navigate("/edit-profile");
+              }
+            })
+            .catch((err) => {
+              setError("Failed to complete Google authentication.");
+              console.error(err);
+            });
+        }
+      })
+      .catch((error) => {
+        console.log("Error getting redirect result:", error);
+      });
+  }, [api, navigate, setAccessToken, setRefreshToken, setUser]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-white to-pink-50 px-4 py-12">
@@ -162,7 +248,9 @@ const SignUp = () => {
           </p>
         </div>
 
-        {error && <ErrorDialog message={error} onClose={() => setError("")} />}
+        {error && (
+          <ErrorDialog message={error} onConfirm={() => setError("")} />
+        )}
         {showSuccess && (
           <SuccessDialog
             title="Account Created"
