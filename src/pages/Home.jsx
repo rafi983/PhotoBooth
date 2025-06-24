@@ -312,14 +312,23 @@ const Home = () => {
 
   const guestLastPostRef = useCallback(
     (node) => {
-      if (!user && posts.length === 4) {
+      if (!user && posts.length === 4 && node) {
         if (observer.current) observer.current.disconnect();
-        observer.current = new IntersectionObserver((entries) => {
-          if (entries[0].isIntersecting) {
-            setShowPopup(true);
-          }
-        });
-        if (node) observer.current.observe(node);
+
+        observer.current = new IntersectionObserver(
+          (entries) => {
+            if (entries[0].isIntersecting) {
+              console.log("Last post visible, showing login popup");
+              setShowPopup(true);
+            }
+          },
+          {
+            threshold: 0.1,
+            rootMargin: "0px 0px 150px 0px",
+          },
+        );
+
+        observer.current.observe(node);
       }
     },
     [user, posts.length],
