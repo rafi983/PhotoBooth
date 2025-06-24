@@ -194,7 +194,7 @@ const EditProfile = () => {
               <h2 className="font-semibold text-base">{user?.name}</h2>
               <p className="text-gray-500">@{user?.email?.split("@")[0]}</p>
             </div>
-            <label className="ml-auto bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition cursor-pointer">
+            <label className="ml-auto bg-pink-500 text-white px-4 py-2 rounded-md text-sm font-medium  hover:bg-pink-600 transition cursor-pointer">
               Change photo
               <input
                 type="file"
@@ -334,7 +334,7 @@ const EditProfile = () => {
 
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition"
+            className="bg-pink-500 text-white px-4 py-2 rounded-md text-sm font-medium  hover:bg-pink-600 transition"
           >
             Change Password
           </button>
@@ -343,7 +343,7 @@ const EditProfile = () => {
         <div className="flex justify-end">
           <button
             onClick={handleProfileUpdate}
-            className="bg-blue-100 text-blue-500 px-6 py-2 rounded-md text-sm font-medium hover:bg-blue-200 transition"
+            className="bg-pink-500 text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-pink-600 transition"
           >
             Submit All Changes
           </button>

@@ -31,3 +31,6 @@
 {"name":"rafi irfan","email":"rafiirfan209@gmail.com","password":"$2b$10$XjMB9k9he7cth9nw6a2RzeSVfCbqJYLUEHuuj0o23ZZuvhvjCZ.ti","avatar":null,"bio":"","createdAt":{"$$date":1750606390066},"_id":"qWstv0TWcjJudmZQ"}
 {"name":"RafiZ","email":"irfanzaman9373@gmail.com","password":"$2b$10$2VMh8jLjNh7CEzmgWoYRiOpNFloah4HTKtA3qpNNpJ5NouFBVfIw.","avatar":null,"bio":"","createdAt":{"$$date":1750604982228},"_id":"y03cBlGZjy3vbazs"}
 {"$$indexCreated":{"fieldName":"email","unique":true,"sparse":false}}
+{"name":"shahrukh khan","email":"shahrukh@gmail.com","password":"$2b$10$I822hrJZ1f6rD5NuJ9NssuBjmViA/aRWegeJqaFcaeOhclx2eTPGK","avatar":null,"bio":"","createdAt":{"$$date":1750771016490},"_id":"Dqv95tIz9dVHpFgc"}
+{"name":"shahrukh khan","email":"shahrukh@gmail.com","password":"$2b$10$I822hrJZ1f6rD5NuJ9NssuBjmViA/aRWegeJqaFcaeOhclx2eTPGK","avatar":null,"bio":"","createdAt":{"$$date":1750771016490},"_id":"Dqv95tIz9dVHpFgc","website":"","gender":""}
+{"name":"shahrukh khan","email":"shahrukh@gmail.com","password":"$2b$10$I822hrJZ1f6rD5NuJ9NssuBjmViA/aRWegeJqaFcaeOhclx2eTPGK","avatar":"uploads\\e995d304-6b11-454b-b6ff-b45bb95c25e6.webp","bio":"","createdAt":{"$$date":1750771016490},"_id":"Dqv95tIz9dVHpFgc","website":"","gender":""}
