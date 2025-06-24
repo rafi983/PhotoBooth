@@ -16,6 +16,8 @@ const EditPost = () => {
   const [existingImage, setExistingImage] = useState("");
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -60,15 +62,30 @@ const EditPost = () => {
         },
       });
 
+      setUpdateSuccess(true);
       toast.success("Post updated successfully!");
-      navigate(`/post/${id}`);
+
+      // Start fade out animation
+      setTimeout(() => {
+        setFadeOut(true);
+      }, 800);
+
+      // Navigate after animation completes
+      setTimeout(() => {
+        navigate(`/post/${id}`);
+      }, 1200);
     } catch (err) {
       toast.error("Failed to update post");
       console.error(err.response?.data || err.message);
-    } finally {
       setLoading(false);
     }
   };
+
+  // Define animation classes based on state
+  const formClasses = `bg-white/90 rounded-2xl shadow-lg p-6 md:p-8 backdrop-blur-md 
+    ${fadeOut ? "opacity-0 transform translate-y-4" : "opacity-100"} 
+    ${updateSuccess ? "border-green-400 border-2" : ""} 
+    transition-all duration-500 ease-in-out`;
 
   return (
     <div className="md:flex">
@@ -85,10 +102,34 @@ const EditPost = () => {
             </Link>
           </div>
 
-          <form
-            onSubmit={handleUpdate}
-            className="bg-white/90 rounded-2xl shadow-lg p-6 md:p-8 backdrop-blur-md animate-fadeIn"
-          >
+          <form onSubmit={handleUpdate} className={formClasses}>
+            {updateSuccess && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-2xl z-10 animate-fade-in">
+                <div className="flex flex-col items-center">
+                  <svg
+                    className="w-16 h-16 text-green-500 mb-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <h3 className="text-xl font-medium text-gray-900">
+                    Post Updated Successfully!
+                  </h3>
+                  <p className="mt-2 text-gray-500">
+                    Redirecting to your post...
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Image Preview */}
               <div className="order-2 md:order-1">
@@ -147,6 +188,7 @@ const EditPost = () => {
                     accept="image/*"
                     onChange={handleImageChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={loading || updateSuccess}
                   />
                 </label>
               </div>
@@ -164,13 +206,14 @@ const EditPost = () => {
                     onChange={(e) => setCaption(e.target.value)}
                     placeholder="Write a caption for your post..."
                     required
+                    disabled={loading || updateSuccess}
                   ></textarea>
                 </div>
 
                 <button
                   type="submit"
                   className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-700 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0"
-                  disabled={loading}
+                  disabled={loading || updateSuccess}
                 >
                   {loading ? (
                     <>
@@ -196,6 +239,8 @@ const EditPost = () => {
                       </svg>
                       Updating Post...
                     </>
+                  ) : updateSuccess ? (
+                    "Post Updated!"
                   ) : (
                     "Update Post"
                   )}
