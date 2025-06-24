@@ -63,11 +63,39 @@ const NotificationItem = ({ notification, onRemove }) => {
       ? "liked your photo."
       : "commented on your photo.";
 
-  const timeAgo = new Date(notification.createdAt).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const formatTimeStamp = (createdAt) => {
+    const now = new Date();
+    const notificationDate = new Date(createdAt);
+    const diffInDays = Math.floor(
+      (now - notificationDate) / (1000 * 60 * 60 * 24),
+    );
+
+    if (diffInDays < 1) {
+      return notificationDate.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } else if (diffInDays < 7) {
+      return notificationDate.toLocaleDateString("en-US", {
+        weekday: "long", // Monday, Tuesday, etc.
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } else {
+      return notificationDate.toLocaleDateString("en-US", {
+        month: "short", // Jan, Feb, etc.
+        day: "numeric",
+        year:
+          notificationDate.getFullYear() !== now.getFullYear()
+            ? "numeric"
+            : undefined,
+      });
+    }
+  };
+
+  const timeAgo = formatTimeStamp(notification.createdAt);
 
   const avatarUrl = notification.fromUser?.avatar
     ? `${BASE_URL}/${notification.fromUser.avatar}`
