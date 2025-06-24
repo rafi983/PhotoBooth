@@ -22,7 +22,14 @@ function App() {
       <Route path="/register" element={<SignUp />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/post/:id" element={<PostDetails />} />
+      <Route
+        path="/post/:id"
+        element={
+          <PrivateRoute>
+            <PostDetails />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/notifications"
         element={
