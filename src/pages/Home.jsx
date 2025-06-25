@@ -73,6 +73,18 @@ const Home = () => {
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const api = useAxios();
   const observer = useRef();
+  const [forceRefresh, setForceRefresh] = useState(0);
+
+  useEffect(() => {
+    // Force refresh when navigating back to home
+    const handleFocus = () => {
+      setForceRefresh((prev) => prev + 1);
+      clearAllStorage();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, []);
 
   const getSavedState = () => {
     try {

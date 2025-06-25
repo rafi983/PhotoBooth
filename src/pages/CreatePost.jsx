@@ -44,6 +44,9 @@ const CreatePost = () => {
 
     try {
       await api.post("/posts", formData);
+      // Clear local storage cache to ensure fresh data fetch
+      localStorage.removeItem("photobooth_posts");
+      localStorage.removeItem("photobooth_timestamp");
       setShowSuccess(true);
     } catch (err) {
       setError("Failed to create post. Please try again.");
