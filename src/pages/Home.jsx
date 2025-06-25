@@ -106,6 +106,32 @@ const Home = () => {
   const [error, setError] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(initialPosts.length > 0);
+  const hasShownPopupRef = useRef(false);
+
+  const handleScroll = useCallback(() => {
+    if (!user && !showPopup && !hasShownPopupRef.current && posts.length >= 4) {
+      const elements = document.querySelectorAll(".post-card");
+      if (elements.length >= 4) {
+        const fourthPost = elements[3];
+        const rect = fourthPost.getBoundingClientRect();
+        if (rect.top <= window.innerHeight) {
+          setShowPopup(true);
+          hasShownPopupRef.current = true;
+        }
+      }
+    }
+  }, [user, showPopup, posts.length]);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
+  useEffect(() => {
+    if (!user) {
+      hasShownPopupRef.current = false;
+    }
+  }, [user]);
 
   useEffect(() => {
     try {
