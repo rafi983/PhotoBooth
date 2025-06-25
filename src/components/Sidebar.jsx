@@ -45,7 +45,6 @@ const Sidebar = () => {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const api = useAxios();
-  // Since unreadCount was in context, we'll use local state for now
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -55,20 +54,34 @@ const Sidebar = () => {
       try {
         const response = await api.get("/notifications");
         if (Array.isArray(response.data)) {
-          const newUnreadCount = response.data.filter(
+          const unreadNotifications = response.data.filter(
             (notification) => !notification.isRead,
+          );
+
+          const validNotifications = await Promise.all(
+            unreadNotifications.map(async (notification) => {
+              try {
+                await api.get(`/posts/${notification.postId}`);
+                return true;
+              } catch (error) {
+                return false;
+              }
+            }),
+          );
+
+          const validUnreadCount = unreadNotifications.filter(
+            (_, index) => validNotifications[index],
           ).length;
-          setUnreadCount(newUnreadCount);
+
+          setUnreadCount(validUnreadCount);
         }
       } catch (error) {
         console.error("Failed to poll for notifications:", error);
       }
     };
 
-    // Initial check
     checkNotifications();
 
-    // Set up polling interval
     const interval = setInterval(checkNotifications, 60000);
     return () => clearInterval(interval);
   }, [api, user]);

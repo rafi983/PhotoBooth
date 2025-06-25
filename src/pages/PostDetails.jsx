@@ -65,11 +65,31 @@ const PostDetails = () => {
   };
 
   const handleLike = async () => {
+    const isLiked = post.likes.some((like) => like?._id === currentUser?._id);
+    const originalPost = { ...post };
+    const newLikes = isLiked
+      ? post.likes.filter((like) => like?._id !== currentUser._id)
+      : [...post.likes, currentUser];
+
+    setPost({ ...post, likes: newLikes });
+
     try {
-      await api.post(`/posts/${post._id}/like`);
-      const res = await api.get(`/posts/${post._id}`);
-      setPost(res.data);
-    } catch {
+      const res = await api.post(`/posts/${post._id}/like`);
+      const updatedPost = await api.get(`/posts/${post._id}`);
+      setPost(updatedPost.data);
+
+      try {
+        const cachedPosts =
+          JSON.parse(localStorage.getItem("photobooth_posts")) || [];
+        const updatedPosts = cachedPosts.map((p) =>
+          p._id === post._id ? { ...p, likes: updatedPost.data.likes } : p,
+        );
+        localStorage.setItem("photobooth_posts", JSON.stringify(updatedPosts));
+      } catch (err) {
+        console.error("Error updating cache:", err);
+      }
+    } catch (err) {
+      setPost(originalPost);
       toast.error("Failed to like post");
     }
   };
