@@ -56,36 +56,28 @@ PhotoBooth is a modern social media platform built with React and Vite, allowing
 - Node.js (version 16 or higher)
 - npm or yarn
 
-### Installation
+## Project installation
 
-1. Clone the repository:
-\`\`\`bash
-git clone https://github.com/rafi983/PhotoBooth.git
-cd PhotoBooth
-\`\`\`
+To get a local copy up and running, follow these simple steps.
 
-2. Install dependencies:
-\`\`\`bash
-npm install
-\`\`\`
+1.  **Clone the repository:**
+    ```sh
+    git clone https://github.com/rafi983/PhotoBooth.git
+    ```
+2.  **Navigate to the project directory:**
+    ```sh
+    cd PhotoBooth 
+    ```
+3.  **Install NPM packages:**
+    ```sh
+    npm install
+    ```
+4.  **Run the development server:**
+    ```sh
+    npm run dev
+    ```
+    The application will be available at `http://localhost:5173`.
 
-
-3. Start the development server:
-\`\`\`bash
-npm run dev
-\`\`\`
-
-### Building for Production
-
-To create a production build:
-\`\`\`bash
-npm run build
-\`\`\`
-
-Preview the production build:
-\`\`\`bash
-npm run preview
-\`\`\`
 
 ## Project Structure
 
