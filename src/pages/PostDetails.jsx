@@ -9,7 +9,6 @@ import Loader from "../components/Loader.jsx";
 import {
   LikeIcon,
   LikeIconFilled,
-  CommentIcon,
   SendIcon,
   EditIcon,
   TrashIcon,
@@ -134,11 +133,9 @@ const PostDetails = () => {
   const handleDeletePost = async () => {
     try {
       await api.delete(`/posts/${post._id}`);
-      // Clear cached posts to force a fresh fetch
       localStorage.removeItem("photobooth_posts");
       localStorage.removeItem("photobooth_timestamp");
 
-      // Update cached posts if they exist
       try {
         const cachedPosts =
           JSON.parse(localStorage.getItem("photobooth_posts")) || [];
@@ -188,9 +185,7 @@ const PostDetails = () => {
             />
           </div>
 
-          {/* Details */}
           <div className="w-full md:w-1/2 flex flex-col">
-            {/* Header */}
             <div className="p-4 md:p-6 border-b border-gray-100 shrink-0">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
