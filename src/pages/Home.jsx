@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import useAxios from "../hooks/useAxios";
 import axios from "axios";
 import useAuthStore from "../store/useAuthStore";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import Loader from "../components/Loader";
@@ -71,12 +72,24 @@ const clearAllStorage = () => {
 const Home = () => {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const navigate = useNavigate();
+  const location = useLocation();
   const api = useAxios();
   const observer = useRef();
   const [forceRefresh, setForceRefresh] = useState(0);
 
   useEffect(() => {
-    // Force refresh when navigating back to home
+    // Force refresh when navigating back from post deletion
+    if (location.state?.forceRefresh) {
+      clearAllStorage();
+      setPosts([]);
+      setPage(1);
+      initialFetchDoneRef.current = false;
+      navigate("/", { replace: true });
+    }
+  }, [location.state, navigate]);
+
+  useEffect(() => {
     const handleFocus = () => {
       setForceRefresh((prev) => prev + 1);
       clearAllStorage();

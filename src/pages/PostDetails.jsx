@@ -134,8 +134,22 @@ const PostDetails = () => {
   const handleDeletePost = async () => {
     try {
       await api.delete(`/posts/${post._id}`);
+      // Clear cached posts to force a fresh fetch
+      localStorage.removeItem("photobooth_posts");
+      localStorage.removeItem("photobooth_timestamp");
+
+      // Update cached posts if they exist
+      try {
+        const cachedPosts =
+          JSON.parse(localStorage.getItem("photobooth_posts")) || [];
+        const updatedPosts = cachedPosts.filter((p) => p._id !== post._id);
+        localStorage.setItem("photobooth_posts", JSON.stringify(updatedPosts));
+      } catch (err) {
+        console.error("Error updating cache:", err);
+      }
+
       toast.success("Post deleted");
-      navigate("/");
+      navigate("/", { state: { forceRefresh: true } });
     } catch {
       toast.error("Failed to delete post");
     }
