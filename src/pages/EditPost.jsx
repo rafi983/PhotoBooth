@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 
 import { BASE_URL } from "../utils/apiConfig.js";
 
-const EditPost = ({ onPostUpdate }) => {
+const EditPost = () => {
   const { id } = useParams();
   const api = useAxios();
   const navigate = useNavigate();
@@ -56,19 +56,14 @@ const EditPost = ({ onPostUpdate }) => {
     }
 
     try {
-      const response = await api.patch(`/posts/${id}`, formData, {
+      await api.patch(`/posts/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      // Notify parent or home page about the update
-      if (response.data && typeof onPostUpdate === "function") {
-        onPostUpdate(response.data);
-      }
-
       setUpdateSuccess(true);
-      toast.success("Post updated successfully");
+      toast.success("Post updated successfully!");
 
       // Start fade out animation
       setTimeout(() => {
@@ -77,12 +72,11 @@ const EditPost = ({ onPostUpdate }) => {
 
       // Navigate after animation completes
       setTimeout(() => {
-        navigate("/");
+        navigate(`/post/${id}`);
       }, 1200);
     } catch (err) {
       toast.error("Failed to update post");
-      console.error(err);
-    } finally {
+      console.error(err.response?.data || err.message);
       setLoading(false);
     }
   };

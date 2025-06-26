@@ -356,13 +356,9 @@ const Home = () => {
   }, [user]);
 
   const handlePostUpdate = (updatedPost) => {
-    setPosts((prevPosts) => {
-      const updatedPosts = prevPosts.map((post) =>
-        post.id === updatedPost.id ? updatedPost : post,
-      );
-      saveToLocalStorage(STORAGE_KEYS.POSTS, updatedPosts);
-      return updatedPosts;
-    });
+    setPosts((prev) =>
+      prev.map((post) => (post._id === updatedPost._id ? updatedPost : post)),
+    );
   };
 
   const guestLastPostRef = useCallback(
