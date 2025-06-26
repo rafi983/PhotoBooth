@@ -99,6 +99,20 @@ const Home = () => {
     return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
+  useEffect(() => {
+    const handlePageShow = (event) => {
+      if (event.persisted) {
+        setForceRefresh((prev) => prev + 1);
+        clearAllStorage();
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, []);
+
   const getSavedState = () => {
     try {
       const savedPosts = getFromLocalStorage(STORAGE_KEYS.POSTS);
@@ -346,7 +360,7 @@ const Home = () => {
     };
 
     fetchPosts();
-  }, [user, api, page, hasHydrated]);
+  }, [user, api, page, hasHydrated, forceRefresh]);
 
   useEffect(() => {
     if (user === null) {

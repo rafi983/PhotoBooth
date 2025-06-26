@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import useAxios from "../hooks/useAxios";
 import useAuthStore from "../store/useAuthStore";
 import Sidebar from "../components/Sidebar.jsx";
@@ -20,6 +20,7 @@ const PostDetails = () => {
   const { id } = useParams();
   const api = useAxios();
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = useAuthStore((state) => state.user);
 
   const [post, setPost] = useState(null);
@@ -49,7 +50,7 @@ const PostDetails = () => {
     };
     fetchPost();
     // eslint-disable-next-line
-  }, [id, api, navigate]);
+  }, [id, api, navigate, location.state]);
 
   const fetchMorePosts = async (userId, excludeId) => {
     try {
@@ -73,7 +74,7 @@ const PostDetails = () => {
     setPost({ ...post, likes: newLikes });
 
     try {
-      const res = await api.post(`/posts/${post._id}/like`);
+      await api.post(`/posts/${post._id}/like`);
       const updatedPost = await api.get(`/posts/${post._id}`);
       setPost(updatedPost.data);
 
@@ -176,7 +177,6 @@ const PostDetails = () => {
       <Sidebar />
       <main className="main-container flex-1 bg-gradient-to-tr from-white to-pink-50 p-4 md:p-8 min-h-screen">
         <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg flex flex-col md:flex-row overflow-hidden md:max-h-[85vh] animate-fadeIn">
-          {/* Image */}
           <div className="w-full md:w-1/2 bg-gray-50 flex items-center justify-center">
             <img
               src={`${BASE_URL}/${post.image}`}
@@ -239,9 +239,7 @@ const PostDetails = () => {
               </div>
             </div>
 
-            {/* Content Area */}
             <div className="flex-grow overflow-y-auto p-4 md:p-6 space-y-5 max-h-[50vh] md:max-h-none custom-scrollbar">
-              {/* Caption */}
               <div className="flex items-start gap-3 bg-gray-50 p-4 rounded-xl">
                 <img
                   src={
@@ -265,7 +263,6 @@ const PostDetails = () => {
                 </div>
               </div>
 
-              {/* Comments Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-sm font-medium text-gray-700">
@@ -299,7 +296,6 @@ const PostDetails = () => {
                   </div>
                 </div>
 
-                {/* Comments List */}
                 <div className="space-y-4">
                   {post.comments?.map((comment) => (
                     <div
@@ -393,7 +389,6 @@ const PostDetails = () => {
               </div>
             </div>
 
-            {/* Comment Form */}
             <div className="shrink-0 p-4 border-t border-gray-100">
               <form
                 onSubmit={handleCommentSubmit}
@@ -422,7 +417,6 @@ const PostDetails = () => {
           </div>
         </div>
 
-        {/* Related Posts */}
         <div className="mt-8 max-w-6xl mx-auto">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
             More from {post.user?.name}
@@ -452,7 +446,6 @@ const PostDetails = () => {
           )}
         </div>
 
-        {/* Modals */}
         {showLikesModal && (
           <LikesModal
             users={post.likes}

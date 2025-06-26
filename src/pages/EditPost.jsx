@@ -62,17 +62,18 @@ const EditPost = () => {
         },
       });
 
+      localStorage.removeItem("photobooth_posts");
+      localStorage.removeItem("photobooth_timestamp");
+
       setUpdateSuccess(true);
       toast.success("Post updated successfully!");
 
-      // Start fade out animation
       setTimeout(() => {
         setFadeOut(true);
       }, 800);
 
-      // Navigate after animation completes
       setTimeout(() => {
-        navigate(`/post/${id}`);
+        navigate(`/post/${id}`, { state: { postUpdated: true } });
       }, 1200);
     } catch (err) {
       toast.error("Failed to update post");
@@ -81,7 +82,6 @@ const EditPost = () => {
     }
   };
 
-  // Define animation classes based on state
   const formClasses = `bg-white/90 rounded-2xl shadow-lg p-6 md:p-8 backdrop-blur-md 
     ${fadeOut ? "opacity-0 transform translate-y-4" : "opacity-100"} 
     ${updateSuccess ? "border-green-400 border-2" : ""} 
@@ -131,7 +131,6 @@ const EditPost = () => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Image Preview */}
               <div className="order-2 md:order-1">
                 <div className="bg-gray-50 rounded-xl overflow-hidden shadow-inner aspect-square flex items-center justify-center mb-4">
                   {imagePreview ? (
@@ -193,7 +192,6 @@ const EditPost = () => {
                 </label>
               </div>
 
-              {/* Form Fields */}
               <div className="order-1 md:order-2">
                 <div className="mb-6">
                   <label className="block mb-2 text-sm font-medium text-gray-700">
