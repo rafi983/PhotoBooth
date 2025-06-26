@@ -50,7 +50,7 @@ function App() {
         path="/edit-post/:id"
         element={
           <PrivateRoute>
-            <EditPost />
+            <EditPost onPostUpdate={handlePostUpdate} />
           </PrivateRoute>
         }
       />
