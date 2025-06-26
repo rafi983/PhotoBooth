@@ -24,6 +24,7 @@ const PostList = ({
     return (
       <div
         key={post._id}
+        className="post-card"
         ref={
           isGuestLast
             ? guestLastPostRef
