@@ -77,33 +77,15 @@ const Home = () => {
   const api = useAxios();
   const observer = useRef();
   const [forceRefresh, setForceRefresh] = useState(0);
-
-  useEffect(() => {
-    // Force refresh when navigating back from post deletion
-    if (location.state?.forceRefresh) {
-      clearAllStorage();
-      setPosts([]);
-      setPage(1);
-      initialFetchDoneRef.current = false;
-      navigate("/", { replace: true });
-    }
-  }, [location.state, navigate]);
-
-  useEffect(() => {
-    const handleFocus = () => {
-      setForceRefresh((prev) => prev + 1);
-      clearAllStorage();
-    };
-
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, []);
+  const initialFetchDoneRef = useRef(false);
 
   useEffect(() => {
     const handlePageShow = (event) => {
       if (event.persisted) {
+        setPosts([]);
+        setPage(1);
+        initialFetchDoneRef.current = false;
         setForceRefresh((prev) => prev + 1);
-        clearAllStorage();
       }
     };
 
@@ -111,6 +93,25 @@ const Home = () => {
     return () => {
       window.removeEventListener("pageshow", handlePageShow);
     };
+  }, []);
+
+  useEffect(() => {
+    if (location.state?.forceRefresh) {
+      setPosts([]);
+      setPage(1);
+      initialFetchDoneRef.current = false;
+      navigate("/", { replace: true });
+      setForceRefresh((prev) => prev + 1);
+    }
+  }, [location.state, navigate]);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      setForceRefresh((prev) => prev + 1);
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
   const getSavedState = () => {
@@ -135,7 +136,6 @@ const Home = () => {
     page: initialPage,
     scrollPos: savedScrollPos,
   } = getSavedState();
-  const initialFetchDoneRef = useRef(false);
 
   const [posts, setPosts] = useState(initialPosts);
   const [page, setPage] = useState(initialPage);
@@ -144,7 +144,6 @@ const Home = () => {
   const [initialLoad, setInitialLoad] = useState(initialPosts.length === 0);
   const [error, setError] = useState("");
   const [showPopup, setShowPopup] = useState(false);
-  const [imagesLoaded, setImagesLoaded] = useState(initialPosts.length > 0);
   const hasShownPopupRef = useRef(false);
 
   const handleScroll = useCallback(() => {
@@ -191,7 +190,9 @@ const Home = () => {
   }, [page]);
 
   useEffect(() => {
-    const handleScroll = () => {};
+    const handleScroll = () => {
+      saveToLocalStorage(STORAGE_KEYS.SCROLL_POS, window.scrollY);
+    };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -199,159 +200,68 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    if (!initialLoad && imagesLoaded && savedScrollPos > 0 && !loading) {
+    if (!initialLoad && posts.length > 0 && savedScrollPos > 0 && !loading) {
       const restoreScrollPosition = () => {
         window.scrollTo({
           top: savedScrollPos,
           behavior: "auto",
         });
       };
-      restoreScrollPosition();
-      setTimeout(restoreScrollPosition, 100);
-      setTimeout(restoreScrollPosition, 500);
+
+      const timeoutId = setTimeout(restoreScrollPosition, 100);
+      return () => clearTimeout(timeoutId);
     }
-  }, [initialLoad, imagesLoaded, savedScrollPos, loading]);
+  }, [initialLoad, posts, savedScrollPos, loading]);
 
   useEffect(() => {
     if (!hasHydrated) return;
 
-    if (initialPosts.length > 0 && page === 1 && !initialFetchDoneRef.current) {
-      setLoading(false);
-      setInitialLoad(false);
-      initialFetchDoneRef.current = true;
-      return;
-    }
-
-    const isFirstPageLoad = page === 1 && initialFetchDoneRef.current;
-
     const fetchPosts = async () => {
+      const isInitialLoadFromCache =
+        posts.length > 0 && !initialFetchDoneRef.current;
+      if (isInitialLoadFromCache) {
+        setLoading(false);
+        setInitialLoad(false);
+        initialFetchDoneRef.current = true;
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+
+      if (page === 1) {
+        clearAllStorage();
+      }
+
+      const fetcher = user ? api : axios;
+      const url = user
+        ? `${BASE_URL}/api/posts?page=${page}&limit=10`
+        : `${BASE_URL}/api/posts`;
+
       try {
-        setLoading(true);
-        setError("");
-
-        if (isFirstPageLoad) {
-          setPosts([]);
-          setImagesLoaded(false);
-        }
-
-        const fetcher = user ? api : axios;
-        const url = user
-          ? `${BASE_URL}/api/posts?page=${page}&limit=10`
-          : `${BASE_URL}/api/posts`;
-
         const response = await fetcher.get(url);
         const data = response.data;
 
         if (Array.isArray(data) && data.length > 0) {
           const validData = data.filter((post) => post && post._id);
 
-          if (validData.length > 0) {
-            const postsWithImages = validData.filter((post) => post.image);
-            const postsWithoutImages = validData.filter((post) => !post.image);
-
-            if (postsWithImages.length > 0) {
-              const imagePromises = postsWithImages.map((post) => {
-                return new Promise((resolve) => {
-                  const img = new Image();
-                  img.src = `${BASE_URL}/${post.image}`;
-                  img.onload = () => resolve({ ...post, imageLoaded: true });
-                  img.onerror = () =>
-                    resolve({ ...post, imageLoadFailed: true });
-                });
-              });
-
-              try {
-                const loadedPosts = await Promise.all(
-                  imagePromises.map((promise) => {
-                    return Promise.race([
-                      promise,
-                      new Promise((resolve) =>
-                        setTimeout(
-                          () => resolve({ imageLoadFailed: true }),
-                          10000,
-                        ),
-                      ),
-                    ]);
-                  }),
-                );
-
-                const successfullyLoadedPosts = loadedPosts.filter(
-                  (post) => !post.imageLoadFailed && post._id,
-                );
-                const allPosts = [
-                  ...successfullyLoadedPosts,
-                  ...postsWithoutImages,
-                ];
-
-                setPosts((prevPosts) => {
-                  if (page === 1) {
-                    return user ? allPosts : allPosts.slice(0, 4);
-                  } else {
-                    if (user) {
-                      const existingIds = new Set(prevPosts.map((p) => p._id));
-                      const newPosts = allPosts.filter(
-                        (p) => !existingIds.has(p._id),
-                      );
-                      return [...prevPosts, ...newPosts];
-                    } else {
-                      return allPosts.slice(0, 4);
-                    }
-                  }
-                });
-              } catch (imgError) {
-                console.error("Image loading error:", imgError);
-                setPosts((prevPosts) => {
-                  if (page === 1) {
-                    return user ? validData : validData.slice(0, 4);
-                  } else {
-                    if (user) {
-                      const existingIds = new Set(prevPosts.map((p) => p._id));
-                      const newPosts = validData.filter(
-                        (p) => !existingIds.has(p._id),
-                      );
-                      return [...prevPosts, ...newPosts];
-                    } else {
-                      return validData.slice(0, 4);
-                    }
-                  }
-                });
-              }
-            } else {
-              setPosts((prevPosts) => {
-                if (page === 1) {
-                  return user ? validData : validData.slice(0, 4);
-                } else {
-                  if (user) {
-                    const existingIds = new Set(prevPosts.map((p) => p._id));
-                    const newPosts = validData.filter(
-                      (p) => !existingIds.has(p._id),
-                    );
-                    return [...prevPosts, ...newPosts];
-                  } else {
-                    return validData.slice(0, 4);
-                  }
-                }
-              });
+          setPosts((prevPosts) => {
+            if (page === 1) {
+              return user ? validData : validData.slice(0, 4);
             }
+            const existingIds = new Set(prevPosts.map((p) => p._id));
+            const newPosts = validData.filter((p) => !existingIds.has(p._id));
+            return user ? [...prevPosts, ...newPosts] : validData.slice(0, 4);
+          });
 
-            setImagesLoaded(true);
-            if (user) {
-              setHasMore(data.length === 10);
-            }
-          } else {
-            if (user) {
-              setHasMore(false);
-            }
-            setImagesLoaded(true);
-          }
+          if (user) setHasMore(data.length === 10);
         } else if (user) {
           setHasMore(false);
-          setImagesLoaded(true);
+          if (page === 1) setPosts([]);
         }
       } catch (err) {
         console.error("Error fetching posts:", err);
         setError("Failed to fetch posts. Please try again.");
-        setImagesLoaded(true);
       } finally {
         setLoading(false);
         setInitialLoad(false);
@@ -377,13 +287,12 @@ const Home = () => {
 
   const guestLastPostRef = useCallback(
     (node) => {
-      if (!user && posts.length === 4 && node) {
+      if (!user && posts.length > 4 && node) {
         if (observer.current) observer.current.disconnect();
 
         observer.current = new IntersectionObserver(
           (entries) => {
             if (entries[0].isIntersecting) {
-              console.log("Last post visible, showing login popup");
               setShowPopup(true);
             }
           },
@@ -420,7 +329,7 @@ const Home = () => {
       <div className="max-w-xl mx-auto w-full py-10">
         {error && <div className="text-center text-red-500 p-4">{error}</div>}
 
-        {initialLoad ? (
+        {initialLoad && loading ? (
           <Loader type="skeleton" />
         ) : (
           <>
@@ -438,10 +347,8 @@ const Home = () => {
               </>
             ) : (
               <div className="text-center py-10">
-                {!loading ? (
+                {!loading && (
                   <p className="text-gray-500">No posts available.</p>
-                ) : (
-                  <Loader type="pulse" size="medium" />
                 )}
               </div>
             )}

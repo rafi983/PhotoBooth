@@ -102,6 +102,28 @@ const PostDetails = () => {
       setComment("");
       const res = await api.get(`/posts/${post._id}`);
       setPost(res.data);
+
+      try {
+        const cachedPosts =
+          JSON.parse(localStorage.getItem("photobooth_posts")) || [];
+
+        const updatedPosts = cachedPosts.map((p) => {
+          if (p._id === post._id) {
+            return {
+              ...p,
+              comments: res.data.comments.slice(0, 2),
+              commentsCount: res.data.comments.length,
+            };
+          }
+          return p;
+        });
+
+        localStorage.setItem("photobooth_posts", JSON.stringify(updatedPosts));
+        localStorage.setItem("photobooth_timestamp", Date.now().toString());
+      } catch (err) {
+        localStorage.removeItem("photobooth_posts");
+        localStorage.removeItem("photobooth_timestamp");
+      }
     } catch {
       toast.error("Failed to post comment");
     }
@@ -126,6 +148,29 @@ const PostDetails = () => {
       const res = await api.get(`/posts/${post._id}`);
       setPost(res.data);
       toast.success("Comment deleted");
+
+      try {
+        const cachedPosts =
+          JSON.parse(localStorage.getItem("photobooth_posts")) || [];
+
+        const updatedPosts = cachedPosts.map((p) => {
+          if (p._id === post._id) {
+            return {
+              ...p,
+              comments: res.data.comments.slice(0, 2), // Update the comment preview
+              commentsCount: res.data.comments.length, // Update the comment count
+            };
+          }
+          return p;
+        });
+
+        localStorage.setItem("photobooth_posts", JSON.stringify(updatedPosts));
+        localStorage.setItem("photobooth_timestamp", Date.now().toString());
+      } catch (err) {
+        console.error("Failed to update cache after deleting comment:", err);
+        localStorage.removeItem("photobooth_posts");
+        localStorage.removeItem("photobooth_timestamp");
+      }
     } catch {
       toast.error("Failed to delete comment");
     }
