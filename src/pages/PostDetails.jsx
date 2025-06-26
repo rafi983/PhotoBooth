@@ -137,11 +137,32 @@ const PostDetails = () => {
       setEditingCommentId(null);
       setEditingText("");
       toast.success("Comment updated");
+
+      try {
+        const cachedPosts =
+          JSON.parse(localStorage.getItem("photobooth_posts")) || [];
+
+        const updatedPosts = cachedPosts.map((p) => {
+          if (p._id === post._id) {
+            return {
+              ...p,
+              comments: res.data.comments.slice(0, 2), // Update the comment preview
+            };
+          }
+          return p;
+        });
+
+        localStorage.setItem("photobooth_posts", JSON.stringify(updatedPosts));
+        localStorage.setItem("photobooth_timestamp", Date.now().toString());
+      } catch (err) {
+        console.error("Failed to update cache after editing comment:", err);
+        localStorage.removeItem("photobooth_posts");
+        localStorage.removeItem("photobooth_timestamp");
+      }
     } catch {
       toast.error("Failed to update comment");
     }
   };
-
   const handleDeleteComment = async (commentId) => {
     try {
       await api.delete(`/posts/comment/${commentId}`);
