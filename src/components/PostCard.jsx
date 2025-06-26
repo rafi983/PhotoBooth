@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 import useAxios from "../hooks/useAxios";
@@ -16,6 +16,10 @@ const PostCard = ({ postData, setShowPopup, onPostUpdate }) => {
   const [comment, setComment] = useState("");
   const [showLikesModal, setShowLikesModal] = useState(false);
 
+  useEffect(() => {
+    // Re-render when loggedInUser changes
+  }, [loggedInUser]);
+
   const {
     user: author,
     createdAt,
@@ -27,9 +31,12 @@ const PostCard = ({ postData, setShowPopup, onPostUpdate }) => {
     _id,
   } = postData;
 
-  const authorAvatarUrl = author?.avatar
-    ? `${BASE_URL}/${author.avatar}`
-    : `https://api.dicebear.com/8.x/initials/svg?seed=${author?.name}`;
+  const authorAvatarUrl =
+    author?._id === loggedInUser?._id && loggedInUser?.avatar
+      ? `${BASE_URL}/${loggedInUser.avatar}?t=${new Date().getTime()}` // Cache-busting query param
+      : author?.avatar
+        ? `${BASE_URL}/${author.avatar}`
+        : `https://api.dicebear.com/8.x/initials/svg?seed=${author?.name}`;
 
   const isLiked = loggedInUser
     ? likes.some((like) => like?._id === loggedInUser._id)

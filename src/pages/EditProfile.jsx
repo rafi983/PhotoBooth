@@ -96,7 +96,9 @@ const EditProfile = () => {
         avatarData.append("avatar", avatarFile);
         await api.patch("/users/me/avatar", avatarData);
       }
-      const updatedUserResponse = await api.get("/users/me");
+      const updatedUserResponse = await api.get(
+        `/users/me?t=${new Date().getTime()}`,
+      ); // Cache-busting query param
       setUser(updatedUserResponse.data);
       setSuccessInfo({ show: true, message: "Profile updated successfully!" });
       setAvatarFile(null);
