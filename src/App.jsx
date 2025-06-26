@@ -15,9 +15,13 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
 function App() {
+  const handlePostUpdate = (updatedPost) => {
+    // Logic to handle post updates
+  };
+
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Home onPostUpdate={handlePostUpdate} />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<SignUp />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
